@@ -22,6 +22,13 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
+  // www.einmalohne.de → einmalohne.de (eine Adresse für Suchmaschinen und Links)
+  const host = String(req.headers.host ?? '');
+  if (host.startsWith('www.')) {
+    res.writeHead(301, { Location: `https://${host.slice(4)}${req.url ?? '/'}` });
+    return res.end();
+  }
+
   if (pathname === '/healthz') {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     return res.end('ok');
