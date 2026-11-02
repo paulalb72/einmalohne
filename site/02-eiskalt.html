@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OHNE – Eiskalt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ohne-yellow: #FFF200;
+    --ice: #E6F1F2;
+    --night: #050A0B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--night); }
+  body { font-family: "Barlow Condensed", "Arial Narrow", sans-serif; color: var(--ice); overflow-x: hidden; }
+
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100svh;
+    overflow: hidden;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    background: var(--night);
+  }
+  /* Spot von oben, wird im Intro hochgefahren */
+  .spot {
+    position: absolute; inset: 0; z-index: -3; opacity: 0;
+    background:
+      radial-gradient(ellipse 38% 70% at var(--bx, 72%) 18%, rgba(120,170,175,.30), rgba(40,70,75,.10) 55%, rgba(0,0,0,0) 80%),
+      radial-gradient(ellipse 60% 25% at var(--bx, 72%) 92%, rgba(90,140,145,.16), rgba(0,0,0,0) 70%),
+      linear-gradient(180deg, #071012 0%, #040809 60%, #020405 100%);
+    transition: opacity 1.6s ease;
+  }
+  .loaded .spot { opacity: 1; }
+  #vapor { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4; pointer-events: none; }
+
+  .copy { padding: 0 clamp(16px, 6vw, 96px); position: relative; z-index: 5; }
+  .kicker { font-weight: 400; letter-spacing: .22em; font-size: clamp(14px, 1.2vw, 18px); color: rgba(230,241,242,.6); }
+  h1 { font-weight: 800; text-transform: uppercase; line-height: .86; font-size: clamp(56px, 8.4vw, 148px); margin: .18em 0 .22em; }
+  h1 em { font-style: normal; color: var(--ohne-yellow); }
+  .lead { font-weight: 300; font-size: clamp(18px, 1.6vw, 26px); line-height: 1.3; max-width: 28ch; color: rgba(230,241,242,.78); }
+  .hint {
+    display: inline-flex; align-items: center; gap: .7em; margin-top: 2em;
+    font-size: 14px; letter-spacing: .16em; text-transform: uppercase; color: rgba(230,241,242,.55);
+  }
+  .hint i { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(230,241,242,.35); position: relative; }
+  .hint i::after {
+    content: ""; position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--ice);
+    top: 50%; left: 50%; margin: -4px 0 0 -4px; animation: swipe 2.4s ease-in-out infinite;
+  }
+  @keyframes swipe { 0%,100% { transform: translateX(-9px); } 50% { transform: translateX(9px); } }
+  .copy > * { opacity: 0; transform: translateY(16px); }
+  .loaded .copy > * { opacity: 1; transform: none; transition: opacity 1s ease, transform 1s cubic-bezier(.2,.8,.2,1); }
+  .loaded .copy > :nth-child(1) { transition-delay: 1.0s; }
+  .loaded .copy > :nth-child(2) { transition-delay: 1.2s; }
+  .loaded .copy > :nth-child(3) { transition-delay: 1.5s; }
+  .loaded .copy > :nth-child(4) { transition-delay: 2.4s; }
+
+  .stage {
+    position: relative; min-height: 100vh; min-height: 100svh;
+    display: flex; align-items: flex-end; justify-content: center; padding-bottom: 12vh;
+  }
+  .bottle-wrap { position: relative; height: min(76vh, 800px); aspect-ratio: 407 / 1800; touch-action: pan-y; cursor: grab; }
+  #bottle { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; }
+  #reflection {
+    position: absolute; left: 0; top: 100%; width: 100%; height: 40%; z-index: 1; pointer-events: none;
+    opacity: .9; filter: blur(1.5px);
+  }
+  .floor-shadow {
+    position: absolute; left: 50%; bottom: -1.6%; width: 170%; height: 4%; transform: translateX(-50%); z-index: 1;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,.85), rgba(0,0,0,0) 70%);
+  }
+  .instant * { transition: none !important; }
+
+  @media (max-width: 820px) {
+    .hero { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; }
+    .copy { padding-top: 40px; text-align: center; }
+    .kicker { letter-spacing: .14em; font-size: 13px; }
+    h1 { font-size: clamp(40px, 12.5vw, 84px); }
+    .lead { margin: 0 auto; font-size: 18px; }
+    .hint { margin-top: 1.2em; }
+    .stage { min-height: 0; padding: 24px 0 14vh; }
+    .bottle-wrap { height: min(52vh, 500px); }
+  }
+</style>
+</head>
+<body>
+
+<section class="hero" id="hero">
+  <div class="spot"></div>
+  <canvas id="vapor" aria-hidden="true"></canvas>
+
+  <div class="copy">
+    <p class="kicker">ohne · weingut rosenhof</p>
+    <h1>Eiskalt.<br>Ganz <em>ohne.</em></h1>
+    <p class="lead">Gut gekühlt genießen – voller Weingeschmack, entalkoholisiert.</p>
+    <p class="hint"><i></i>Über die Flasche wischen</p>
+  </div>
+
+  <div class="stage">
+    <div class="bottle-wrap" id="bottleWrap">
+      <div class="floor-shadow"></div>
+      <canvas id="reflection" aria-hidden="true"></canvas>
+      <canvas id="bottle" role="img" aria-label="Beschlagene, eiskalte Flasche OHNE"></canvas>
+    </div>
+  </div>
+</section>
+
+<script>
+(() => {
+  // Silhouette der Flasche: linke/rechte Kante (Anteil der Breite) in 41 Höhenschritten
+  const PROFILE = [[0.5,0.5],[0.299,0.673],[0.293,0.686],[0.3,0.68],[0.294,0.687],[0.295,0.687],[0.297,0.688],[0.298,0.689],[0.302,0.689],[0.294,0.698],[0.285,0.708],[0.272,0.722],[0.254,0.739],[0.234,0.757],[0.212,0.78],[0.184,0.805],[0.155,0.836],[0.123,0.869],[0.089,0.903],[0.062,0.932],[0.041,0.954],[0.023,0.971],[0.015,0.982],[0.011,0.987],[0.009,0.988],[0.008,0.988],[0.008,0.988],[0.004,0.991],[0.004,0.988],[0.004,0.988],[0.004,0.991],[0.004,0.991],[0.004,0.988],[0.004,0.988],[0.004,0.988],[0.004,0.988],[0.004,0.988],[0.007,0.992],[0.005,0.994],[0.03,0.962],[0.5,0.5]];
+  const CAP_END = 0.115; // Schraubverschluss endet hier
+
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // ?t=3 springt für Vorschau-Screenshots direkt zu Sekunde 3
+  const T_OFF = parseFloat(new URLSearchParams(location.search).get('t')) || 0;
+  if (T_OFF) document.documentElement.classList.add('instant');
+
+  const hero = document.getElementById('hero');
+  const wrap = document.getElementById('bottleWrap');
+  const canvas = document.getElementById('bottle');
+  const ctx = canvas.getContext('2d');
+  const refl = document.getElementById('reflection');
+  const rctx = refl.getContext('2d');
+  const vapor = document.getElementById('vapor');
+  const vctx = vapor.getContext('2d');
+
+  const mk = () => document.createElement('canvas');
+  const fogTex = mk(), fctx = fogTex.getContext('2d');   // fertige Beschlag-Textur
+  const mask = mk(), mctx = mask.getContext('2d');       // wo beschlagen ist (Alpha)
+  const fog = mk(), gctx = fog.getContext('2d');         // Textur × Maske
+  const rim = mk(), rimctx = rim.getContext('2d');       // kalte Kantenlichter
+
+  const img = new Image();
+  img.src = 'assets/bottle.webp';
+
+  let dpr = 1, w = 0, h = 0, s = 1, VW = 0, VH = 0;
+  let drops = [];
+  let t0 = 0, last = 0, visible = true, spawnAcc = 0;
+
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+
+  function edgesAt(fy) {
+    const i = clamp01(fy) * 40, i0 = Math.floor(i), i1 = Math.min(40, i0 + 1), f = i - i0;
+    return [PROFILE[i0][0] + (PROFILE[i1][0] - PROFILE[i0][0]) * f, PROFILE[i0][1] + (PROFILE[i1][1] - PROFILE[i0][1]) * f];
+  }
+
+  // Tropfen-Sprite: dunkler Linsenrand, helle Kaustik unten, Glanzpunkt oben links
+  const sprite = mk();
+  (() => {
+    const S = 128, c = sprite.getContext('2d'); sprite.width = sprite.height = S;
+    const r = S / 2;
+    c.translate(r, r);
+    let g = c.createRadialGradient(0, 0, r * 0.55, 0, 0, r);
+    g.addColorStop(0, 'rgba(0,12,14,0)');
+    g.addColorStop(0.75, 'rgba(0,12,14,.28)');
+    g.addColorStop(0.94, 'rgba(0,12,14,.62)');
+    g.addColorStop(1, 'rgba(0,12,14,0)');
+    c.fillStyle = g; c.beginPath(); c.arc(0, 0, r, 0, 7); c.fill();
+    // Licht bündelt sich unten im Tropfen
+    g = c.createRadialGradient(0, r * 0.52, 0, 0, r * 0.52, r * 0.5);
+    g.addColorStop(0, 'rgba(235,250,250,.55)');
+    g.addColorStop(1, 'rgba(235,250,250,0)');
+    c.fillStyle = g; c.beginPath(); c.ellipse(0, r * 0.5, r * 0.62, r * 0.3, 0, 0, 7); c.fill();
+    g = c.createRadialGradient(-r * .3, -r * .38, 0, -r * .3, -r * .38, r * .26);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.45, 'rgba(255,255,255,.65)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = g; c.beginPath(); c.arc(-r * .3, -r * .38, r * .26, 0, 7); c.fill();
+  })();
+
+  function buildFogTexture() {
+    fogTex.width = w; fogTex.height = h;
+    fctx.clearRect(0, 0, w, h);
+    // feiner Dunst
+    fctx.fillStyle = 'rgba(205,226,232,.17)';
+    fctx.fillRect(0, 0, w, h);
+    // Mikrotropfen
+    const n = Math.round(w * h / (4 * dpr * dpr));
+    for (let i = 0; i < n; i++) {
+      const x = Math.random() * w, y = Math.random() * h;
+      const r = Math.pow(Math.random(), 7) * 3.4 * s + 0.25 * s;
+      if (r > 1.3 * s) {
+        // klarer Tropfenkörper im Dunst, darüber Rand und Glanz
+        fctx.globalCompositeOperation = 'destination-out';
+        fctx.globalAlpha = 0.85;
+        fctx.beginPath(); fctx.arc(x, y, r * 0.9, 0, 7); fctx.fill();
+        fctx.globalCompositeOperation = 'source-over';
+        fctx.globalAlpha = rand(.5, .85);
+        fctx.drawImage(sprite, x - r, y - r, r * 2, r * 2);
+      } else {
+        fctx.globalAlpha = 1;
+        fctx.fillStyle = `rgba(230,243,246,${rand(.08, .32).toFixed(2)})`;
+        fctx.beginPath(); fctx.arc(x, y, r, 0, 7); fctx.fill();
+      }
+    }
+    fctx.globalAlpha = 1;
+    // auf dem Metallverschluss weniger Beschlag
+    fctx.globalCompositeOperation = 'destination-out';
+    const g = fctx.createLinearGradient(0, 0, 0, h * CAP_END * 1.15);
+    g.addColorStop(0, 'rgba(0,0,0,.55)'); g.addColorStop(.85, 'rgba(0,0,0,.45)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    fctx.fillStyle = g; fctx.fillRect(0, 0, w, h * CAP_END * 1.15);
+    fctx.globalCompositeOperation = 'source-over';
+  }
+
+  function buildRim() {
+    rim.width = w; rim.height = h;
+    const g = rimctx.createLinearGradient(0, 0, w, 0);
+    g.addColorStop(0.0, 'rgba(150,215,225,.55)');
+    g.addColorStop(0.07, 'rgba(150,215,225,.0)');
+    g.addColorStop(0.9, 'rgba(150,215,225,.0)');
+    g.addColorStop(1.0, 'rgba(170,225,235,.6)');
+    rimctx.fillStyle = g; rimctx.fillRect(0, 0, w, h);
+    rimctx.globalCompositeOperation = 'destination-in';
+    rimctx.drawImage(img, 0, 0, w, h);
+    rimctx.globalCompositeOperation = 'source-over';
+  }
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const bw = wrap.clientWidth, bh = wrap.clientHeight;
+    const ow = w, oh = h;
+    w = Math.round(bw * dpr); h = Math.round(bh * dpr);
+    VW = hero.clientWidth; VH = hero.clientHeight;
+    vapor.width = VW * dpr; vapor.height = VH * dpr;
+    if (w !== ow || h !== oh) {
+      // Beschlag und Tropfen beim Größenwechsel mitskalieren statt zurückzusetzen
+      const old = mk();
+      if (ow && oh) { old.width = ow; old.height = oh; old.getContext('2d').drawImage(mask, 0, 0); }
+      s = dpr * Math.max(0.8, bw / 150); // Grundmaßstab für Tropfengrößen
+      canvas.width = mask.width = fog.width = w;
+      canvas.height = mask.height = fog.height = h;
+      refl.width = w; refl.height = Math.round(h * 0.4);
+      buildFogTexture();
+      buildRim();
+      if (ow && oh) {
+        mctx.drawImage(old, 0, 0, w, h);
+        const kx = w / ow, ky = h / oh;
+        for (const d of drops) { d.x *= kx; d.y *= ky; d.r *= kx; d.lastTrail *= ky; }
+      }
+    }
+    const r = wrap.getBoundingClientRect(), hr = hero.getBoundingClientRect();
+    hero.style.setProperty('--bx', ((r.left + r.width / 2 - hr.left) / VW * 100) + '%');
+  }
+
+  function spawnDrop(x, y, r) {
+    if (x === undefined) {
+      const fy = rand(CAP_END + 0.02, 0.97);
+      const [l, rr] = edgesAt(fy);
+      x = rand(l + 0.03, rr - 0.03) * w; y = fy * h;
+      r = rand(1.2, 3.4) * s;
+    }
+    drops.push({ x, y, r, vy: 0, vx: 0, moving: false, slideAt: rand(0.85, 1.25), grow: (Math.random() < 0.3 ? rand(0.5, 1.1) : rand(0.03, 0.15)) * s, stick: 0, wob: Math.random() * 10, lastTrail: y });
+  }
+
+  // Wischspur: weiche Pinselabdrücke entfernen den Beschlag
+  function wipe(x0, y0, x1, y1, rad, strength = 1) {
+    const d = Math.hypot(x1 - x0, y1 - y0), steps = Math.max(1, Math.ceil(d / (rad * 0.25)));
+    mctx.globalCompositeOperation = 'destination-out';
+    for (let i = 0; i <= steps; i++) {
+      const x = x0 + (x1 - x0) * i / steps, y = y0 + (y1 - y0) * i / steps;
+      const g = mctx.createRadialGradient(x, y, 0, x, y, rad);
+      g.addColorStop(0, `rgba(0,0,0,${0.9 * strength})`);
+      g.addColorStop(0.6, `rgba(0,0,0,${0.6 * strength})`);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      mctx.fillStyle = g;
+      mctx.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+    }
+    mctx.globalCompositeOperation = 'source-over';
+  }
+
+  function fingerWipe(x0, y0, x1, y1) {
+    const rad = 13 * s;
+    wipe(x0, y0, x1, y1, rad);
+    // Tropfen im Weg werden weggewischt, am Rand bleiben neue Perlen stehen
+    for (const d of drops) {
+      const dist = distToSeg(d.x, d.y, x0, y0, x1, y1);
+      if (dist < rad * 0.8) d.dead = true;
+    }
+    if (Math.random() < 0.5 && drops.length < 260) {
+      const a = Math.random() * Math.PI * 2;
+      spawnDrop(x1 + Math.cos(a) * rad * 0.95, y1 + Math.sin(a) * rad * 0.95, rand(1.5, 3.6) * s);
+    }
+  }
+
+  function distToSeg(px, py, ax, ay, bx, by) {
+    const dx = bx - ax, dy = by - ay, l = dx * dx + dy * dy;
+    const t = l ? clamp01(((px - ax) * dx + (py - ay) * dy) / l) : 0;
+    return Math.hypot(px - ax - t * dx, py - ay - t * dy);
+  }
+
+  function updateDrops(dt, t) {
+    const slideR = 5.6 * s;
+    for (const d of drops) {
+      if (d.dead) continue;
+      if (!d.moving) {
+        d.r += d.grow * dt * (d.r < slideR * d.slideAt ? 1 : 0.2);
+        if (d.r > slideR * d.slideAt && Math.random() < dt * 1.2) { d.moving = true; d.vy = 0; }
+        continue;
+      }
+      // Stop-and-go wie echte Tropfen: Haften und Losreißen
+      d.wob += dt;
+      if (d.stick > 0) { d.stick -= dt; d.vy *= 0.8; }
+      else {
+        d.vy += (120 + d.r * 18) * s * dt;
+        d.vy = Math.min(d.vy, (60 + d.r * 14) * s);
+        if (Math.random() < dt * 0.9) d.stick = rand(0.08, 0.5);
+      }
+      d.vx = Math.sin(d.wob * 3.1 + d.x) * 4 * s;
+      const ny = d.y + d.vy * dt, nx = d.x + d.vx * dt;
+      // Spur freiwischen
+      wipe(d.x, d.y - d.r * 0.3, nx, ny - d.r * 0.3, d.r * 0.95, 0.8);
+      // Masse geht an die Spur verloren, kleine Resttropfen bleiben hängen
+      d.r -= (ny - d.y) * 0.0035;
+      if (d.lastTrail - ny < -d.r * 3.2 && Math.random() < 0.35 && drops.length < 260) {
+        spawnDrop(d.x + rand(-1, 1) * s, d.y - d.r * rand(1.5, 3), rand(0.8, 1.6) * s);
+        drops[drops.length - 1].grow = 0.02 * s;
+        d.lastTrail = ny;
+      }
+      d.x = nx; d.y = ny;
+      if (d.r < 2.6 * s) { d.moving = false; d.grow = 0.05 * s; }
+      if (d.y - d.r > h * 0.985) d.dead = true;
+    }
+    // Zusammenfließen
+    for (const a of drops) {
+      if (!a.moving || a.dead) continue;
+      for (const b of drops) {
+        if (b === a || b.dead) continue;
+        const dx = b.x - a.x, dy = b.y - a.y, rr = a.r + b.r;
+        if (dx * dx + dy * dy < rr * rr * 0.6) {
+          a.r = Math.min(8.5 * s, Math.sqrt(a.r * a.r + b.r * b.r * 0.9));
+          a.vy *= 0.85; a.stick = 0;
+          b.dead = true;
+        }
+      }
+    }
+    drops = drops.filter(d => !d.dead);
+  }
+
+  function drawDrop(d) {
+    const sy = d.moving ? 1.18 : 1.0, sx = d.moving ? 0.92 : 1.0;
+    const rx = d.r * sx, ry = d.r * sy;
+    // Brechung: Umgebung verkleinert und auf den Kopf gestellt in der Linse
+    const k = 1.9;
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(d.x, d.y, rx, ry, 0, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.translate(d.x, d.y);
+    ctx.scale(1, -1);
+    const sw = rx * 2 * k, sh = ry * 2 * k;
+    const srcScaleX = img.naturalWidth / w, srcScaleY = img.naturalHeight / h;
+    ctx.globalAlpha = 0.7;
+    ctx.drawImage(img,
+      (d.x - sw / 2) * srcScaleX, (d.y - sh / 2) * srcScaleY, sw * srcScaleX, sh * srcScaleY,
+      -rx, -ry, rx * 2, ry * 2);
+    ctx.restore();
+    ctx.globalAlpha = 1;
+    ctx.drawImage(sprite, d.x - rx * 1.05, d.y - ry * 1.05, rx * 2.1, ry * 2.1);
+  }
+
+  // Kalter Nebel als weiche Schwaden
+  const puff = mk();
+  (() => {
+    const S = 256, c = puff.getContext('2d'); puff.width = puff.height = S;
+    const g = c.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+    g.addColorStop(0, 'rgba(210,235,240,.55)');
+    g.addColorStop(0.4, 'rgba(200,228,235,.22)');
+    g.addColorStop(1, 'rgba(200,228,235,0)');
+    c.fillStyle = g; c.fillRect(0, 0, S, S);
+  })();
+  const puffs = Array.from({ length: 22 }, () => newPuff(true));
+  function newPuff(initial) {
+    return { u: initial ? Math.random() : -0.1, v: rand(0.75, 1.0), size: rand(0.12, 0.32), speed: rand(0.008, 0.02), rise: rand(0.002, 0.01), a: rand(0.05, 0.13), life: initial ? Math.random() : 0 };
+  }
+  function drawVapor(dt, t, intro) {
+    vctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    vctx.clearRect(0, 0, VW, VH);
+    const r = wrap.getBoundingClientRect(), hr = hero.getBoundingClientRect();
+    const baseY = r.bottom - hr.top;
+    for (const p of puffs) {
+      p.u += p.speed * dt; p.v -= p.rise * dt; p.life += dt * 0.05;
+      if (p.u > 1.15 || p.life > 1) Object.assign(p, newPuff(false));
+      const fade = Math.sin(Math.PI * clamp01(p.life)) * intro;
+      const size = p.size * Math.max(VW, VH) * (0.8 + p.life * 0.6);
+      const x = p.u * VW * 1.2 - VW * 0.1;
+      const y = baseY + (p.v - 0.9) * VH * 0.5;
+      vctx.globalAlpha = p.a * fade;
+      vctx.drawImage(puff, x - size / 2, y - size * 0.25, size, size * 0.5);
+    }
+    vctx.globalAlpha = 1;
+  }
+
+  // Zeiger -> Wischen
+  let pointer = null;
+  wrap.addEventListener('pointermove', e => {
+    const r = canvas.getBoundingClientRect();
+    const x = (e.clientX - r.left) * dpr, y = (e.clientY - r.top) * dpr;
+    if (pointer) fingerWipe(pointer.x, pointer.y, x, y);
+    pointer = { x, y };
+    userTouched = true;
+  });
+  wrap.addEventListener('pointerleave', () => { pointer = null; });
+  let userTouched = false, demoDone = false;
+
+  // Automatischer Fingerwisch als Hinweis, falls niemand interagiert
+  function demoWipe(t) {
+    const p = clamp01((t - 4.2) / 1.1);
+    if (p <= 0 || demoDone) return;
+    const path = q => {
+      const e = q < .5 ? 2 * q * q : 1 - Math.pow(-2 * q + 2, 2) / 2;
+      return [(0.22 + 0.56 * e) * w, (0.47 + Math.sin(e * Math.PI) * -0.035) * h];
+    };
+    const prev = demoWipe.prev || 0;
+    const [x0, y0] = path(prev), [x1, y1] = path(p);
+    fingerWipe(x0, y0, x1, y1);
+    demoWipe.prev = p;
+    if (p >= 1) demoDone = true;
+  }
+
+  function frame(now) {
+    if (!t0) { t0 = now; last = now; }
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const t = (now - t0) / 1000 + T_OFF;
+    const intro = clamp01((t - 0.3) / 1.6);
+
+    // Beschlag wächst nach (am Anfang beschlägt die Flasche sichtbar)
+    const regrow = t < 3 ? 0.03 : 0.0022;
+    mctx.fillStyle = `rgba(0,0,0,${regrow})`;
+    mctx.fillRect(0, 0, w, h);
+
+    if (!reduce) {
+      if (t > 1.6) {
+        spawnAcc += dt * (drops.length < 90 ? 14 : 1.2);
+        while (spawnAcc > 1) { spawnDrop(); spawnAcc--; }
+      }
+      updateDrops(dt, t);
+      if (!userTouched) demoWipe(t);
+    }
+
+    gctx.globalCompositeOperation = 'copy';
+    gctx.drawImage(fogTex, 0, 0);
+    gctx.globalCompositeOperation = 'destination-in';
+    gctx.drawImage(mask, 0, 0);
+
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
+    ctx.clearRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+    // kühler Look: leicht entsättigt, bläulich
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.fillStyle = 'rgba(20,60,70,.16)';
+    ctx.fillRect(0, 0, w, h);
+    ctx.globalCompositeOperation = 'screen';
+    ctx.drawImage(rim, 0, 0);
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.globalAlpha = 0.9;
+    ctx.drawImage(fog, 0, 0);
+    ctx.globalAlpha = 1;
+    for (const d of drops) drawDrop(d);
+    ctx.globalCompositeOperation = 'source-over';
+
+    // Spiegelung auf dem Boden
+    rctx.setTransform(1, 0, 0, 1, 0, 0);
+    rctx.globalCompositeOperation = 'source-over';
+    rctx.clearRect(0, 0, refl.width, refl.height);
+    rctx.save();
+    rctx.scale(1, -1);
+    rctx.globalAlpha = 0.22;
+    rctx.drawImage(canvas, 0, h - refl.height, w, refl.height, 0, -refl.height, w, refl.height);
+    rctx.restore();
+    rctx.globalCompositeOperation = 'destination-out';
+    const fg = rctx.createLinearGradient(0, 0, 0, refl.height);
+    fg.addColorStop(0, 'rgba(0,0,0,.2)'); fg.addColorStop(0.6, 'rgba(0,0,0,1)');
+    rctx.fillStyle = fg; rctx.fillRect(0, 0, refl.width, refl.height);
+
+    drawVapor(dt, t, intro);
+    canvas.style.opacity = 0.25 + intro * 0.75;
+
+    if (visible) requestAnimationFrame(frame);
+  }
+
+  addEventListener('resize', () => { resize(); });
+  new IntersectionObserver(([en]) => {
+    const was = visible; visible = en.isIntersecting;
+    if (visible && !was) { last = performance.now(); requestAnimationFrame(frame); }
+  }).observe(hero);
+
+  img.onload = () => {
+    resize();
+    if (T_OFF) { // Vorschau: Zustand nach T_OFF Sekunden vorab simulieren
+      mctx.fillStyle = '#000'; mctx.fillRect(0, 0, w, h);
+      for (let i = 0; i < 90; i++) spawnDrop();
+      mctx.fillStyle = 'rgba(0,0,0,.0022)';
+      for (let i = 0; i < Math.min(600, T_OFF * 60); i++) { updateDrops(1 / 60, i / 60); mctx.fillRect(0, 0, w, h); }
+    }
+    document.body.classList.add('loaded');
+    requestAnimationFrame(frame);
+  };
+})();
+</script>
+</body>
+</html>

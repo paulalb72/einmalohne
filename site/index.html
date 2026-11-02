@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OHNE – Deutscher Wein, entalkoholisiert</title>
+<meta name="description" content="OHNE ist ein deutscher entalkoholisierter Wein vom Weingut Rosenhof – als Stillwein und als Secco. Ohne Alkohol. Ohne Verzicht.">
+<meta name="theme-color" content="#FFF200">
+<link rel="icon" href="assets/ohne-logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;800&display=swap" rel="stylesheet">
+<!-- Alle gescrubbten und gepinnten Effekte hängen an .fx; ohne JS oder bei reduzierter Bewegung bleibt eine ruhige Seite -->
+<script>if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('fx');</script>
+<style>
+  :root {
+    --ohne-yellow: #FFF200;
+    --ohne-ink: #231F20;
+    --gutter: clamp(16px, 6vw, 96px);
+    --spring: cubic-bezier(.2,.8,.2,1);
+    --arc-max: 12vw;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: var(--ohne-yellow); }
+  .fx { scroll-behavior: smooth; }
+  body { font-family: "Barlow Condensed", "Arial Narrow", sans-serif; color: var(--ohne-ink); overflow-x: clip; -webkit-font-smoothing: antialiased; }
+  ::selection { background: var(--ohne-ink); color: var(--ohne-yellow); }
+  :focus-visible { outline: 3px solid currentColor; outline-offset: 4px; }
+  ul { list-style: none; }
+
+  .cta {
+    display: inline-flex; align-items: center; gap: .6em;
+    background: var(--ohne-ink); color: var(--ohne-yellow); text-decoration: none;
+    font-weight: 700; letter-spacing: .12em; text-transform: uppercase; font-size: 15px;
+    padding: 1em 1.6em; border-radius: 999px;
+    transition: background .25s, color .25s;
+  }
+  .cta:hover { background: #fff; color: var(--ohne-ink); }
+  .cta svg { transition: transform .25s; }
+  .cta:hover svg { transform: translateX(4px); }
+
+  /* Kreissegment statt gerader Kante: die Sektion schiebt sich als Ring-Ausschnitt ins Bild */
+  .curtain { border-radius: 50% 50% 0 0 / var(--arc, 0px) var(--arc, 0px) 0 0; }
+  .fx .gruende, .fx .finale, .fx .staub { margin-top: calc(var(--arc-max) * -1); }
+
+  /* ---------- Navigation ---------- */
+  .nav {
+    position: fixed; inset: 0 0 auto 0; z-index: 40;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px var(--gutter);
+    color: var(--ohne-ink); transition: color .3s;
+  }
+  .nav[data-on="ink"] { color: var(--ohne-yellow); }
+  .nav[data-on="photo"] { color: #fff; }
+  .nav-logo { display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; }
+  .nav-logo svg { display: block; height: 52px; aspect-ratio: 83 / 171; color: inherit; }
+  .nav-logo span { font-weight: 400; font-size: 14px; line-height: 1.1; letter-spacing: .08em; text-transform: lowercase; }
+  .nav ul { display: flex; gap: clamp(18px, 3vw, 44px); }
+  .nav ul a { color: inherit; text-decoration: none; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; font-size: 15px; }
+  .nav ul a:hover { text-decoration: underline; text-underline-offset: .3em; text-decoration-thickness: 2px; }
+  .fx .nav { opacity: 0; transform: translateY(-12px); transition: opacity .8s, transform .8s var(--spring), color .3s; }
+  .fx.landed .nav { opacity: 1; transform: none; }
+  .fx.landed .nav.away { transform: translateY(-110%); }
+  .fx.landed .nav.away:focus-within { transform: none; }
+
+  /* ---------- Hero ---------- */
+  .lead-in { position: relative; }
+  .hero {
+    position: sticky; top: min(0px, calc(100svh - 580px)); z-index: 0;
+    height: 100vh; height: 100svh; min-height: 580px;
+    overflow: hidden; isolation: isolate;
+    background: var(--ohne-yellow);
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    align-items: center;
+  }
+  #rings { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -2; display: none; }
+  .fx #rings { display: block; }
+  .fx .hero.solid #rings { display: none; }
+  /* Tiefe nur während der Hypnose: weiche Vignette + feines Korn; beides läuft mit --fx aus */
+  .fx .hero::before {
+    content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: var(--fx, 0);
+    background: radial-gradient(ellipse at var(--cx, 70%) var(--cy, 60%), rgba(255,255,255,0) 30%, rgba(170,140,0,.22) 100%);
+  }
+  .fx .hero::after {
+    content: ""; position: absolute; inset: -50%; z-index: 5; pointer-events: none; opacity: calc(var(--fx, 0) * .07); mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    animation: grain 1.2s steps(6) infinite;
+  }
+  .fx .hero.solid::before, .fx .hero.solid::after { display: none; }
+  @keyframes grain { 0%{transform:translate(0,0)} 33%{transform:translate(-3%,2%)} 66%{transform:translate(2%,-3%)} 100%{transform:translate(0,0)} }
+
+  .copy { padding-left: var(--gutter); position: relative; z-index: 3; }
+  h1 {
+    font-weight: 800; text-transform: uppercase; line-height: .9; letter-spacing: -.01em;
+    font-size: clamp(44px, min(7.7vw, 19vh), 176px); margin: .16em 0 .2em; white-space: nowrap;
+  }
+  h1 span { display: block; overflow: hidden; }
+  h1 span i { display: block; font-style: normal; }
+  .hero .cta { margin-top: 1.6em; }
+
+  .stage {
+    position: relative; height: 100%;
+    display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: 7vh;
+  }
+  .bottle-wrap {
+    position: relative; display: block; border: 0; background: none; cursor: pointer;
+    height: min(80vh, 820px);
+    aspect-ratio: 407 / 1800;
+    transform-origin: 50.3% 79.2%;
+    will-change: transform;
+  }
+  .bottle-wrap canvas, .s-bottle canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; }
+  .bottle-wrap canvas img, .s-bottle canvas img { width: 100%; height: 100%; }
+  .shadow {
+    position: absolute; left: 50%; bottom: -2.2%; width: 230%; height: 6%; z-index: 1;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at center, rgba(60,45,0,.55) 0%, rgba(60,45,0,.25) 35%, rgba(60,45,0,0) 70%);
+    filter: blur(2px);
+  }
+  .badge {
+    position: absolute; z-index: 4; pointer-events: none;
+    width: clamp(92px, 11vw, 168px); aspect-ratio: 1;
+    left: calc(50% - min(80vh, 820px) * .113 - clamp(92px, 11vw, 168px) - 3vw); top: 23vh;
+  }
+  .fx .badge-text { transform-origin: 100px 100px; animation: spin 18s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Auftritt: Claim sofort, der Rest landet erst mit der Farbe */
+  .fx .hero .cta { opacity: 0; transform: translateY(14px); }
+  .fx .hero .badge { opacity: 0; transform: scale(.4) rotate(-40deg); }
+  .fx h1 span i { transform: translateY(105%); }
+  .fx.loaded h1 span i { transition: transform 1s var(--spring); transform: none; }
+  .fx.loaded h1 span:nth-child(1) i { transition-delay: 1.05s; }
+  .fx.loaded h1 span:nth-child(2) i { transition-delay: 1.3s; }
+  .fx.landed .hero .cta { transition: opacity .9s ease, transform .9s var(--spring); opacity: 1; transform: none; }
+  .fx.landed .hero .badge { transition: opacity .3s .5s, transform .9s cubic-bezier(.3,1.6,.5,1) .5s; opacity: 1; transform: none; }
+
+  .instant * { transition: none !important; }
+
+  /* ---------- Herkunft: das Etikett öffnet sich zum Weinberg ---------- */
+  .herkunft { position: relative; z-index: 1; pointer-events: none; }
+  .fx .herkunft { height: 280vh; margin-top: calc(max(100vh, 580px) * -1); margin-top: calc(max(100svh, 580px) * -1); }
+  .h-stage { position: relative; height: 100vh; height: 100svh; min-height: 480px; overflow: hidden; background: var(--ohne-ink); color: #fff; }
+  .fx .h-stage { position: sticky; top: 0; clip-path: circle(var(--iris, 0px) at var(--ix, 75%) var(--iy, 75%)); }
+  .h-stage img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%; will-change: transform; }
+  .h-stage::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(to top, rgba(35,31,32,.78) 0%, rgba(35,31,32,.34) 36%, rgba(35,31,32,0) 64%);
+  }
+  .h-copy { position: absolute; left: var(--gutter); right: var(--gutter); bottom: clamp(36px, 8vh, 84px); z-index: 1; }
+  .h-copy h2 { font-weight: 800; text-transform: uppercase; line-height: .9; letter-spacing: -.01em; font-size: clamp(44px, min(7.7vw, 19vh), 176px); }
+  .h-copy h2 span { display: block; overflow: hidden; }
+  .h-copy h2 i { display: block; font-style: normal; transform: translateY(calc((1 - var(--h, 1)) * 105%)); }
+  .h-copy p {
+    font-weight: 400; font-size: clamp(19px, 1.75vw, 28px); line-height: 1.3; max-width: 34rem; margin-top: .7em;
+    opacity: var(--h, 1); transform: translateY(calc((1 - var(--h, 1)) * 20px));
+  }
+
+  /* ---------- Handwerk ---------- */
+  .handwerk {
+    position: relative; z-index: 2; background: #fff;
+    padding: clamp(96px, 13vw, 190px) var(--gutter) calc(var(--arc-max) + clamp(56px, 8vw, 120px));
+  }
+  .fx .handwerk { margin-top: calc(var(--arc-max) * -1); }
+  .handwerk h2, .staub h2 { font-weight: 800; text-transform: uppercase; line-height: .9; letter-spacing: -.01em; font-size: clamp(44px, 7.7vw, 148px); }
+  .hw-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(12px, 2vw, 32px); margin-top: clamp(32px, 5vw, 72px); }
+  .hw-a { grid-column: 1 / span 5; aspect-ratio: 2 / 3; }
+  .hw-b { grid-column: 7 / -1; display: flex; flex-direction: column; justify-content: space-between; gap: 40px; }
+  .hw-b p { font-weight: 300; font-size: clamp(23px, 2.5vw, 40px); line-height: 1.22; }
+  .hw-c { aspect-ratio: 3 / 2; }
+  /* Fotos: Rahmen steht im Raster, das Motiv wandert langsam darin */
+  .ph { position: relative; display: block; overflow: hidden; background: #e9e9e6; }
+  .ph img { display: block; width: 100%; height: 100%; object-fit: cover; transform: scale(1.1) translateY(var(--py, 0%)); will-change: transform; }
+  .fx .ph::after { content: ""; position: absolute; inset: 0; background: #fff; transform-origin: top; transition: transform 1.2s var(--spring); }
+  .fx .ph.in::after { transform: scaleY(0); }
+
+  /* ---------- Modern gedacht: der Himmel des Fotos ist das Marken-Gelb ---------- */
+  .staub {
+    position: relative; z-index: 2; background: var(--ohne-yellow); overflow: hidden;
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 100vh; min-height: 100svh;
+  }
+  .st-copy { align-self: center; padding: clamp(88px, 12vh, 140px) 32px 56px var(--gutter); position: relative; z-index: 1; }
+  .st-copy p { font-weight: 300; font-size: clamp(23px, 2.5vw, 40px); line-height: 1.22; max-width: 30rem; margin-top: .75em; }
+  .staub figure { align-self: end; height: 100%; min-height: 0; }
+  .staub img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; }
+
+  /* ---------- Sorten ---------- */
+  .sorten { position: relative; z-index: 2; background: var(--ohne-yellow); --bh: min(84svh, 900px); --bw: calc(var(--bh) * .2261); }
+  .fx .sorten { height: 340vh; }
+  .anchor { position: absolute; left: 0; width: 1px; height: 1px; }
+  .fx #weingut { top: 40%; }
+  #stillwein { top: 19%; }
+  #secco { top: 56.5%; }
+  .s-stage { position: relative; overflow: hidden; isolation: isolate; }
+  .fx .s-stage { position: sticky; top: 0; height: 100vh; height: 100svh; }
+  #sRings, .s-secco { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+  .s-secco { display: none; }
+  .fx .s-secco { display: block; background: #fff; clip-path: circle(var(--wipe, 0px) at var(--wx, 50%) var(--wy, 70%)); }
+  .s-secco canvas { display: block; width: 100%; height: 100%; }
+
+  .s-head { padding: 96px var(--gutter) 0; }
+  .fx .s-head { position: absolute; left: 0; right: 0; top: 0; }
+  .s-head h2 { font-weight: 400; letter-spacing: .22em; text-transform: lowercase; font-size: clamp(14px, 1.2vw, 18px); }
+
+  .s-bottle {
+    position: absolute; left: 50%; bottom: 5svh; z-index: 2;
+    height: var(--bh); aspect-ratio: 407 / 1800;
+    transform: translate(-50%, var(--by, 0%)) rotate(var(--br, 0deg));
+    will-change: transform;
+  }
+  .sorte {
+    display: grid; grid-template-columns: minmax(0, 1fr) var(--bw) minmax(0, 1fr); align-items: center;
+    column-gap: clamp(20px, 4.5vw, 72px); padding: 56px var(--gutter);
+  }
+  .fx .sorte { position: absolute; inset: 0; pointer-events: none; }
+  .sorte a { pointer-events: auto; }
+  .s-name { grid-column: 1; justify-self: end; font-weight: 800; text-transform: uppercase; line-height: .86; letter-spacing: -.01em; font-size: min(14.4vw, 34vh); text-align: right; }
+  .s-name span { display: block; overflow: hidden; }
+  .s-name i { display: block; font-style: normal; }
+  .s-copy { grid-column: 3; max-width: 24rem; }
+  .s-copy h4 { font-weight: 800; text-transform: uppercase; font-size: clamp(34px, 4vw, 68px); line-height: .95; margin-bottom: .3em; }
+  .s-copy p { font-weight: 300; font-size: clamp(19px, 1.7vw, 26px); line-height: 1.32; }
+  .s-copy .cta { margin-top: 1.3em; }
+
+  /* Tausch der Sorten: Name rollt, Text blendet */
+  .fx .s-name i { transition: transform .75s var(--spring); transform: translateY(-105%); }
+  .fx .sorte:not(.on).below .s-name i { transform: translateY(105%); }
+  .fx .sorte.on .s-name i { transform: none; }
+  .fx .s-name span:nth-child(2) i { transition-delay: .06s; }
+  .fx .s-copy { transition: opacity .4s, transform .6s var(--spring); opacity: 0; transform: translateY(20px); }
+  .fx .sorte.on .s-copy { opacity: 1; transform: none; transition-delay: .12s; }
+
+  .s-switch {
+    display: none; position: absolute; left: var(--gutter); bottom: 26px; z-index: 3;
+    background: var(--ohne-ink); border-radius: 999px; padding: 5px;
+  }
+  .fx .s-switch { display: flex; }
+  .s-switch a {
+    position: relative; z-index: 1; width: 7.4em; text-align: center; padding: .6em 0; text-decoration: none;
+    font-weight: 700; letter-spacing: .1em; text-transform: uppercase; font-size: 14px;
+    color: var(--ohne-yellow); transition: color .3s;
+  }
+  .s-switch::before {
+    content: ""; position: absolute; top: 5px; bottom: 5px; left: 5px; width: calc(50% - 5px); border-radius: 999px;
+    background: var(--ohne-yellow); transition: transform .5s var(--spring);
+  }
+  .s-stage[data-sorte="secco"] .s-switch::before { transform: translateX(100%); }
+  .s-stage[data-sorte="still"] .s-switch a:first-child,
+  .s-stage[data-sorte="secco"] .s-switch a:last-child { color: var(--ohne-ink); }
+
+  /* ---------- Wann ---------- */
+  .gruende {
+    position: relative; z-index: 3;
+    background: var(--ohne-ink); color: var(--ohne-yellow);
+    padding: clamp(96px, 14vw, 200px) 0 calc(var(--arc-max) + clamp(64px, 8vw, 120px));
+  }
+  .g-head { padding: 0 var(--gutter) clamp(32px, 5vw, 64px); }
+  .g-head h2 { font-weight: 800; text-transform: uppercase; line-height: .9; font-size: clamp(44px, 7.7vw, 148px); letter-spacing: -.01em; }
+  .grund, .over {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1em;
+    padding: .2em var(--gutter) .22em;
+  }
+  .grund { position: relative; border-top: 1px solid rgba(255,242,0,.3); font-size: clamp(38px, 7.2vw, 132px); }
+  .grund:last-child { border-bottom: 1px solid rgba(255,242,0,.3); }
+  .grund b { font-weight: 800; text-transform: uppercase; line-height: 1; letter-spacing: -.01em; }
+  .grund span { font-weight: 300; font-size: clamp(18px, 2vw, 32px); text-align: right; }
+  .over {
+    position: absolute; inset: -1px 0; background: var(--ohne-yellow); color: var(--ohne-ink);
+    clip-path: circle(0px at var(--x, 50%) var(--y, 50%)); transition: clip-path .65s var(--spring); pointer-events: none;
+  }
+  .grund.on .over { clip-path: circle(120vw at var(--x, 50%) var(--y, 50%)); }
+  .fx .rv { opacity: 0; transform: translateY(26px); transition: opacity .8s ease, transform .9s var(--spring); }
+  .fx .rv.in { opacity: 1; transform: none; }
+
+  /* ---------- Finale: der Bildschirm wird zum Etikett ---------- */
+  .finale {
+    position: relative; z-index: 4;
+    min-height: calc(100vh + var(--arc-max)); min-height: calc(100svh + var(--arc-max));
+    overflow: hidden; isolation: isolate; background: var(--ohne-yellow);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    padding: calc(var(--arc-max) + 32px) var(--gutter) 56px;
+  }
+  #fRings { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+  .fin-mark { display: block; height: min(46svh, 76vw); aspect-ratio: 83 / 171; color: var(--ohne-ink); }
+  blockquote { font-weight: 800; text-transform: uppercase; line-height: .96; font-size: clamp(30px, 5vw, 92px); letter-spacing: -.01em; margin: .5em 0 .45em; }
+
+  br.m { display: none; }
+
+  footer {
+    position: relative; z-index: 4;
+    background: var(--ohne-ink); color: var(--ohne-yellow);
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 32px;
+    padding: 22px var(--gutter); font-weight: 400; letter-spacing: .06em; font-size: 16px;
+  }
+  footer ul { display: flex; gap: 24px; }
+  footer a { color: inherit; }
+
+  @media (max-width: 820px) {
+    :root { --arc-max: 18vw; }
+    .nav-logo svg { height: 44px; }
+    .nav-logo { gap: 9px; }
+    .nav-logo span { font-size: 12px; }
+    .nav { padding-block: 10px; }
+    .nav ul a { font-size: 14px; letter-spacing: .08em; }
+
+    .hero { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+    .copy { padding: 76px var(--gutter) 0; text-align: center; }
+    h1 { font-size: clamp(38px, 12.8vw, 84px); }
+    .hero .cta { margin-top: .5em; }
+    .stage { padding: 14px 0 3.5vh; height: auto; min-height: 0; align-self: stretch; }
+    .bottle-wrap { height: 100%; }
+    .badge { width: 88px; left: calc(50% + 62px); top: auto; bottom: 34%; }
+
+    .h-copy h2 { font-size: min(13vw, 11svh); }
+    .h-stage img { object-position: 52% 62%; }
+
+    .hw-a { grid-column: 1 / span 9; }
+    .hw-b { grid-column: 1 / -1; margin-top: 32px; }
+    .hw-c { margin-inline: calc(var(--gutter) * -1); }
+
+    .staub { grid-template-columns: minmax(0, 1fr); }
+    .st-copy { padding: 84px var(--gutter) 0; }
+    .st-copy p { font-size: 22px; }
+    .staub figure { margin-top: -6vw; }
+
+    .sorten { --bh: min(62svh, 118vw); }
+    .s-bottle { left: auto; right: max(4vw, 16px); bottom: 76px; transform: translate(0, var(--by, 0%)) rotate(var(--br, 0deg)); }
+    .s-head h2 { letter-spacing: .14em; font-size: 13px; }
+    .s-head { padding-top: 84px; }
+    .fx .sorte { padding: 128px var(--gutter) 78px; }
+    .sorte { grid-template-columns: minmax(0, 1fr); align-content: space-between; padding-right: calc(var(--bw) + var(--gutter) + 8px); }
+    .s-name { grid-column: 1; justify-self: start; text-align: left; font-size: min(23vw, 15svh); }
+    .s-copy { grid-column: 1; }
+    .s-copy h4 { font-size: 30px; }
+    .s-copy p { font-size: 18px; line-height: 1.25; }
+    .s-copy .cta { font-size: 13px; padding: .9em 1.2em; margin-top: 1em; }
+    .s-switch { bottom: 18px; }
+    .s-switch a { font-size: 13px; }
+
+    br.m { display: inline; }
+    .grund, .over { flex-direction: column; gap: .12em; }
+    .grund span { text-align: left; }
+    footer { font-size: 15px; }
+  }
+
+  @media (max-width: 350px) {
+    .nav li:first-child { display: none; }
+  }
+
+  /* Ruhige Fassung: Navigation bleibt oben stehen, Stillwein und Secco stehen nebeneinander um die Flasche */
+  html:not(.fx) .nav { position: absolute; }
+  html:not(.fx) .s-stage { display: grid; grid-template-columns: minmax(0, 1fr) var(--bw) minmax(0, 1fr); align-items: start; gap: 24px clamp(20px, 4vw, 64px); padding: 0 var(--gutter) 48px; min-height: 100vh; }
+  html:not(.fx) .s-head { grid-column: 1 / -1; padding-inline: 0; }
+  html:not(.fx) .s-bottle { position: relative; left: auto; bottom: auto; transform: none; grid-column: 2; grid-row: 2; }
+  html:not(.fx) .sorte { display: block; padding: 0; grid-row: 2; align-self: center; }
+  html:not(.fx) .sorte:first-of-type { grid-column: 1; }
+  html:not(.fx) .sorte:last-of-type { grid-column: 3; }
+  html:not(.fx) .s-name { justify-self: start; text-align: left; font-size: clamp(56px, 9vw, 150px); margin-bottom: .2em; }
+  @media (max-width: 820px) {
+    html:not(.fx) .s-stage { grid-template-columns: minmax(0, 1fr); }
+    html:not(.fx) .s-bottle, html:not(.fx) .sorte { grid-column: 1 !important; grid-row: auto; justify-self: center; }
+  }
+</style>
+</head>
+<body id="top">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="oh-ne" viewBox="58 39 83 171">
+    <path fill="currentColor" fill-rule="nonzero" d="M58.13 103.4C58.13 106.89 58.71 109.87 59.87 112.35C61.03 114.83 62.58 116.88 64.52 118.5C66.38 120.21 68.48 121.49 70.85 122.34C73.21 123.19 75.59 123.61 77.99 123.61C80.39 123.61 82.77 123.19 85.14 122.34C87.5 121.49 89.65 120.21 91.58 118.5C93.44 116.88 94.95 114.83 96.11 112.35C97.27 109.87 97.86 106.89 97.86 103.4L97.86 59.73C97.86 56.4 97.27 53.45 96.11 50.9C94.95 48.34 93.44 46.21 91.58 44.51C89.65 42.88 87.5 41.64 85.14 40.79C82.77 39.94 80.39 39.51 77.99 39.51C75.59 39.51 73.21 39.94 70.85 40.79C68.48 41.64 66.38 42.88 64.52 44.51C62.58 46.21 61.03 48.34 59.87 50.9C58.71 53.45 58.13 56.4 58.13 59.73L58.13 103.4M69.98 59.73C69.98 56.86 70.77 54.75 72.36 53.39C73.94 52.04 75.82 51.36 77.99 51.36C80.16 51.36 82.04 52.04 83.63 53.39C85.21 54.75 86.01 56.86 86.01 59.73L86.01 103.4C86.01 106.27 85.21 108.38 83.63 109.73C82.04 111.09 80.16 111.77 77.99 111.77C75.82 111.77 73.94 111.09 72.36 109.73C70.77 108.38 69.98 106.27 69.98 103.4L69.98 59.73M113.19 122.92L113.19 86.09L127.82 86.09L127.82 122.92L139.67 122.92L139.67 40.21L127.82 40.21L127.82 75.64L113.19 75.64L113.19 40.21L101.34 40.21L101.34 122.92L113.19 122.92"/>
+    <path fill="currentColor" d="M72.42 209.96L72.42 160.24L72.65 160.24L90.77 209.96L101.92 209.96L101.92 127.25L90.07 127.25L90.07 177.08L89.84 177.08L71.95 127.25L60.57 127.25L60.57 209.96L72.42 209.96M140.95 209.96L140.95 198.11L117.49 198.11L117.49 173.83L137.93 173.83L137.93 162.68L117.49 162.68L117.49 138.4L140.95 138.4L140.95 127.25L105.64 127.25L105.64 209.96L140.95 209.96"/>
+  </symbol>
+</svg>
+
+<header class="nav" id="nav">
+  <a class="nav-logo" href="#top" aria-label="OHNE vom Weingut Rosenhof – zum Seitenanfang"><svg aria-hidden="true"><use href="#oh-ne"/></svg><span>vom weingut<br>rosenhof</span></a>
+  <nav aria-label="Sorten">
+    <ul>
+      <li><a href="#weingut">Weingut</a></li>
+      <li><a href="#stillwein">Stillwein</a></li>
+      <li><a href="#secco">Secco</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+<div class="lead-in">
+  <section class="hero" id="hero" data-nav="light">
+    <canvas id="rings" aria-hidden="true"></canvas>
+
+    <div class="copy" id="heroCopy">
+      <h1><span><i>Ohne Alkohol.</i></span><span><i>Ohne Verzicht.</i></span></h1>
+      <a class="cta" href="#sorten">Sorten entdecken
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M0 6h16M11 1l5 5-5 5"/></svg>
+      </a>
+    </div>
+
+    <div class="stage">
+      <svg class="badge" viewBox="0 0 200 200" aria-hidden="true">
+        <circle cx="100" cy="100" r="100" fill="#231F20"/>
+        <defs><path id="circ" d="M100 100m-77 0a77 77 0 1 1 154 0a77 77 0 1 1 -154 0"/></defs>
+        <g class="badge-text">
+          <text font-family="Barlow Condensed, Arial Narrow, sans-serif" font-weight="700" font-size="24" fill="#FFF200" text-anchor="start">
+            <textPath href="#circ" textLength="480" lengthAdjust="spacing">DIREKT AUS DEM WEINGUT · ROSENHOF · </textPath>
+          </text>
+        </g>
+        <use href="#oh-ne" x="72" y="56" width="56" height="88" color="#FFF200"/>
+      </svg>
+      <button class="bottle-wrap" id="bottleWrap" type="button" aria-label="Flasche OHNE – Hypnose noch einmal starten">
+        <span class="shadow" id="shadow"></span>
+        <canvas id="bottle" aria-hidden="true"><img src="assets/bottle.webp" alt=""></canvas>
+      </button>
+    </div>
+
+  </section>
+
+  <section class="herkunft" id="herkunft" data-nav="photo">
+    <span class="anchor" id="weingut"></span>
+    <div class="h-stage" id="hStage">
+      <img id="hImg" src="assets/weingut-reben-2400.webp" srcset="assets/weingut-reben-1280.webp 1280w, assets/weingut-reben-2400.webp 2400w" sizes="max(100vw, 150vh)" width="2400" height="1600" alt="Blick durch die Rebzeilen des Weinguts Rosenhof: Zwei Personen tragen gefüllte Eimer zum Traktor.">
+      <div class="h-copy">
+        <h2><span><i>Direkt aus</i></span><span><i>dem Weingut.</i></span></h2>
+        <p>OHNE ist ein deutscher entalkoholisierter Wein vom Weingut Rosenhof.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<section class="handwerk curtain" id="handwerk" data-nav="light">
+  <h2 class="rv">Nicht ohne Handwerk.</h2>
+  <div class="hw-grid">
+    <figure class="ph hw-a"><img src="assets/weingut-lese-1200.webp" srcset="assets/weingut-lese-700.webp 700w, assets/weingut-lese-1200.webp 1200w" sizes="(max-width: 820px) 75vw, 42vw" width="1200" height="1800" loading="lazy" decoding="async" alt="Schwarz-Weiß-Aufnahme bei der Lese: Eine Person leert lächelnd einen Eimer voller Trauben in eine Bütte."></figure>
+    <div class="hw-b">
+      <p class="rv">Qualität entsteht im Weinberg, Stock für Stock und Eimer für Eimer. Dafür steht das Team vom Weingut Rosenhof selbst zwischen den Reben.</p>
+      <figure class="ph hw-c"><img src="assets/weingut-team-1600.webp" srcset="assets/weingut-team-900.webp 900w, assets/weingut-team-1600.webp 1600w" sizes="(max-width: 820px) 100vw, 50vw" width="1600" height="1067" loading="lazy" decoding="async" alt="Das Team in schwarzen Rosenhof-Shirts bei der Lese zwischen den Reben."></figure>
+    </div>
+  </div>
+</section>
+
+<section class="staub curtain" id="modern" data-nav="light">
+  <div class="st-copy">
+    <h2 class="rv">Aber ohne<br>Staub.</h2>
+    <p class="rv">Winzerhandwerk, modern gedacht: für alle, die den Alkohol weglassen wollen, aber nicht den Wein.</p>
+  </div>
+  <figure><img src="assets/weingut-traube-1300.webp" srcset="assets/weingut-traube-760.webp 760w, assets/weingut-traube-1300.webp 1300w" sizes="(max-width: 820px) 100vw, 50vw" width="1300" height="1950" loading="lazy" decoding="async" alt="Im Weinberg fliegt eine Traube in die Luft, eine Person schaut ihr lachend nach."></figure>
+</section>
+
+<section class="sorten" id="sorten" data-nav="light">
+  <span class="anchor" id="stillwein"></span>
+  <span class="anchor" id="secco"></span>
+  <div class="s-stage" id="sStage" data-sorte="still">
+    <canvas id="sRings" aria-hidden="true"></canvas>
+    <div class="s-secco" id="sSecco"><canvas id="sBubbles" aria-hidden="true"></canvas></div>
+
+    <div class="s-head"><h2>zweimal ohne: einmal als stillwein, einmal als secco</h2></div>
+
+    <article class="sorte on" data-s="still">
+      <h3 class="s-name" aria-label="Stillwein"><span><i>Still</i></span><span><i>wein</i></span></h3>
+      <div class="s-copy">
+        <h4>Ohne Eile.</h4>
+        <p>Steht ruhig im Glas und lässt sich Zeit – der OHNE für den langen Abend.</p>
+        <a class="cta" href="#probieren">Stillwein probieren</a>
+      </div>
+    </article>
+
+    <article class="sorte below" data-s="secco">
+      <h3 class="s-name" aria-label="Secco"><span><i>Sec</i></span><span><i>co</i></span></h3>
+      <div class="s-copy">
+        <h4>Ohne Stillstand.</h4>
+        <p>Perlt im Glas und eröffnet die Runde – der OHNE zum Anstoßen.</p>
+        <a class="cta" href="#probieren">Secco probieren</a>
+      </div>
+    </article>
+
+    <div class="s-bottle" id="sWrap">
+      <span class="shadow"></span>
+      <!-- Vom Secco liegt noch kein eigenes Foto vor: beide Sorten zeigen vorerst dieselbe Flasche -->
+      <canvas id="sBottle" role="img" aria-label="Flasche OHNE"><img src="assets/bottle.webp" alt="Flasche OHNE"></canvas>
+    </div>
+
+    <div class="s-switch">
+      <a href="#stillwein">Stillwein</a><a href="#secco">Secco</a>
+    </div>
+  </div>
+</section>
+
+<section class="gruende curtain" id="wann" data-nav="ink">
+  <div class="g-head rv"><h2>Wann? Ohne Frage.</h2></div>
+  <ul>
+    <li class="grund"><b>Ohne Anlass.</b><span>Ein Dienstag reicht.</span></li>
+    <li class="grund"><b>Ohne Uhrzeit.</b><span>Mittags? Warum nicht.</span></li>
+    <li class="grund"><b>Ohne Erklärung.</b><span>Du trinkst ja mit.</span></li>
+    <li class="grund"><b>Ohne Wenn und Aber.</b><span>Glas hoch. Fertig.</span></li>
+  </ul>
+</section>
+
+<section class="finale curtain" id="probieren" data-nav="light">
+  <canvas id="fRings" aria-hidden="true"></canvas>
+  <svg class="fin-mark" id="fMark" role="img" aria-label="OHNE"><use href="#oh-ne"/></svg>
+  <blockquote>„Ohne Alkohol. <br class="m">Ohne Verzicht.“</blockquote>
+  <!-- TODO: Link zum Shop bzw. zur Bestellung eintragen -->
+  <a class="cta" href="#">Jetzt probieren
+    <svg width="18" height="12" viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M0 6h16M11 1l5 5-5 5"/></svg>
+  </a>
+</section>
+</main>
+
+<footer data-nav="ink">
+  <p>OHNE – ein Wein vom Weingut Rosenhof</p>
+  <!-- TODO: Impressum und Datenschutz verlinken -->
+  <ul>
+    <li><a href="#">Impressum</a></li>
+    <li><a href="#">Datenschutz</a></li>
+  </ul>
+</footer>
+
+<script>
+(() => {
+  // Etikett-Mittelpunkt und -Breite auf dem Flaschenfoto (Anteile der Bildgröße)
+  const LABEL_CX = 0.503, LABEL_CY = 0.792, LABEL_W = 0.856;
+  // Sichtbarer Wein oberhalb des Etiketts, ebenfalls in Bildanteilen
+  const GLASS_TOP = 0.19, LABEL_TOP = 0.653;
+  // Ringproportionen aus dem Etikett (198,43 Einheiten breit): weißer Ring ≈ 20, Periode ≈ 46
+  const RING_PERIOD = 46 / 198.43, RING_DUTY = 20 / 46;
+  // Hypnose-Zeitplan in Sekunden: Ringe brechen aus, füllen das Bild, ziehen sich zurück, Vollton
+  const T_RING = 0.9, T_FULL = 3.1, T_BACK = 4.3, T_SOLID = 6.9;
+  // Volltonfarbe, in der die Hypnose endet (Gegenstück: .hero im CSS)
+  const SOLID = '#FFF200';
+
+  const root = document.documentElement;
+  const fx = root.classList.contains('fx');
+  // ?t=3 springt für Vorschau-Screenshots direkt zu Sekunde 3
+  const T_OFF = parseFloat(new URLSearchParams(location.search).get('t')) || 0;
+  if (T_OFF) root.classList.add('instant');
+
+  const $ = id => document.getElementById(id);
+  const nav = $('nav'), hero = $('hero'), heroCopy = $('heroCopy');
+  const herkunft = $('herkunft'), hStage = $('hStage'), hImg = $('hImg');
+  const rings = $('rings'), rctx = rings.getContext('2d');
+  const wrap = $('bottleWrap'), shadow = $('shadow');
+  const sorten = $('sorten'), stage = $('sStage'), sWrap = $('sWrap'), sSecco = $('sSecco');
+  const sRings = $('sRings'), srctx = sRings.getContext('2d');
+  const sBub = $('sBubbles'), bctx = sBub.getContext('2d');
+  const fin = $('probieren'), fRings = $('fRings'), fctx = fRings.getContext('2d'), fMark = $('fMark');
+  const curtains = [...document.querySelectorAll('.curtain')];
+  const themed = [...document.querySelectorAll('[data-nav]')];
+  const sorteEls = [...document.querySelectorAll('.sorte')];
+  const framed = [...document.querySelectorAll('.ph')];
+
+  const img = new Image();
+  img.src = 'assets/bottle.webp';
+
+  let dpr = 1, W = 0, H = 0, sW = 0, sH = 0, fW = 0, fH = 0, arcMax = 0;
+  let mouseX = 0.5, mouseY = 0.5, smx = 0.5, smy = 0.5, pxX = -999, pxY = -999;
+  let t0 = 0, last = 0, lastY = scrollY;
+  let ringShift = 0, solid = false, sorte = 'still', iris = 0, labelX = 0, labelY = 0;
+
+  const easeOutBack = x => { const c1 = 1.4, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+  const easeOutCubic = x => 1 - Math.pow(1 - x, 3);
+  const easeInOut = x => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const seg = (p, a, b) => clamp01((p - a) / (b - a));
+  const inView = r => r.bottom > 0 && r.top < innerHeight;
+
+  // Canvas nur anfassen, wenn sich die Größe wirklich ändert – Mobil-Adressleisten feuern resize beim Scrollen
+  function fit(cv, w, h) {
+    const nw = Math.round(w * dpr), nh = Math.round(h * dpr);
+    if (cv.width !== nw) cv.width = nw;
+    if (cv.height !== nh) cv.height = nh;
+  }
+
+  function paintRings(c, w, h, cx, cy, labelPx, s, reveal, light) {
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.fillStyle = SOLID;
+    c.fillRect(0, 0, w, h);
+
+    // Periode wächst mit dem Radius – wie die immer breiteren Ringe auf dem Etikett
+    const P0 = labelPx * RING_PERIOD;
+    const L = labelPx * 1.6;
+    const phi = r => (L / P0) * Math.log(1 + r / L);
+    const rad = p => L * (Math.exp(p * P0 / L) - 1);
+    const maxR = Math.hypot(Math.max(cx, w - cx), Math.max(cy, h - cy)) + 40;
+    const f = ((s % 1) + 1) % 1; // s läuft beim Zurückziehen ins Negative
+    const kMax = Math.ceil(phi(maxR)) + 1;
+
+    c.strokeStyle = '#FFFFFF';
+    for (let k = -1; k <= kMax; k++) {
+      const r0 = rad(Math.max(0, k + f));
+      let r1 = rad(Math.max(0, k + f + RING_DUTY));
+      if (r1 <= 0) continue;
+      if (r0 > reveal) break;
+      r1 = Math.min(r1, reveal);
+      const w2 = r1 - r0;
+      if (w2 <= 0.2) continue;
+      c.lineWidth = w2;
+      c.beginPath();
+      c.arc(cx, cy, r0 + w2 / 2, 0, Math.PI * 2);
+      c.stroke();
+    }
+    if (light > 0) {
+      // weiches Licht hinter der Flasche
+      const g = c.createRadialGradient(cx, cy - labelPx * 1.5, 0, cx, cy - labelPx * 1.5, labelPx * 5);
+      g.addColorStop(0, `rgba(255,255,255,${.35 * light})`);
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      c.fillStyle = g;
+      c.fillRect(0, 0, w, h);
+    }
+    return maxR;
+  }
+
+  // Perlen im Glas: laufen hinter dem Etikett los und steigen in den Hals
+  const pearls = Array.from({ length: 54 }, () => ({
+    x: Math.random(), y: Math.random(), r: 0.4 + Math.random() * 1.2,
+    v: 0.05 + Math.random() * 0.09, ph: Math.random() * 6.28,
+  }));
+
+  function bottleView(cv) {
+    const ctx = cv.getContext('2d');
+    const sheen = document.createElement('canvas');
+    const sctx = sheen.getContext('2d');
+
+    function band(x, width, peak) {
+      const w = sheen.width, h = sheen.height;
+      const g = sctx.createLinearGradient((x - width) * w, 0, (x + width) * w, 0);
+      g.addColorStop(0, 'rgba(255,255,240,0)');
+      g.addColorStop(0.42, `rgba(255,255,240,${peak * 0.25})`);
+      g.addColorStop(0.5, `rgba(255,255,240,${peak})`);
+      g.addColorStop(0.58, `rgba(255,255,240,${peak * 0.25})`);
+      g.addColorStop(1, 'rgba(255,255,240,0)');
+      sctx.fillStyle = g;
+      sctx.fillRect(0, 0, w, h);
+    }
+
+    return {
+      resize() {
+        const b = cv.parentElement;
+        fit(cv, b.clientWidth, b.clientHeight);
+        fit(sheen, b.clientWidth, b.clientHeight);
+      },
+      draw(sweepX, baseX, fizz, t) {
+        if (!img.naturalWidth) return;
+        const w = cv.width, h = cv.height;
+        if (!w || !h) return;
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.clearRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+
+        if (fizz > 0) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(0, GLASS_TOP * h, w, (LABEL_TOP - GLASS_TOP) * h);
+          ctx.clip();
+          ctx.globalCompositeOperation = 'source-atop';
+          ctx.fillStyle = '#FFFBD0';
+          for (const p of pearls) {
+            const y = 1 - (p.y + t * p.v) % 1;
+            ctx.globalAlpha = fizz * (.3 + .6 * clamp01((y - .02) * 6)) * clamp01((1 - y) * 8 + .4);
+            ctx.beginPath();
+            ctx.arc(p.x * w + Math.sin(t * 1.4 + p.ph) * w * .012, (GLASS_TOP + y * (LABEL_TOP - GLASS_TOP)) * h, p.r * w * .011, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+
+        // Glanzstreifen, nur auf dem Glas (destination-in mit dem Foto als Maske)
+        sctx.globalCompositeOperation = 'source-over';
+        sctx.clearRect(0, 0, w, h);
+        band(baseX, 0.12, 0.16);
+        if (sweepX > -0.5) band(sweepX, 0.22, 0.42);
+        // statische Kantenreflexe links und rechts für mehr Rundung
+        const e = sctx.createLinearGradient(0, 0, w, 0);
+        e.addColorStop(0.02, 'rgba(255,250,200,.20)');
+        e.addColorStop(0.12, 'rgba(255,250,200,0)');
+        e.addColorStop(0.88, 'rgba(255,250,200,0)');
+        e.addColorStop(0.98, 'rgba(255,250,200,.28)');
+        sctx.fillStyle = e;
+        sctx.fillRect(0, 0, w, h);
+        sctx.globalCompositeOperation = 'destination-in';
+        sctx.drawImage(img, 0, 0, w, h);
+
+        ctx.globalCompositeOperation = 'screen';
+        ctx.drawImage(sheen, 0, 0);
+        ctx.globalCompositeOperation = 'source-over';
+      },
+    };
+  }
+  const hView = bottleView($('bottle'));
+  const sView = bottleView($('sBottle'));
+
+  // Perlen im Bild: jede ist ein kleines Etikett – gelb mit weißem Ring
+  const bubbles = Array.from({ length: innerWidth < 820 ? 20 : 38 }, () => {
+    const k = Math.random();
+    return { k, r: 5 + Math.pow(k, 3) * 66, v: 40 + (1 - k) * 80, ph: Math.random() * 6.28, x: Math.random(), y: Math.random(), dx: 0, ready: false };
+  });
+
+  function drawBubbles(t, dt) {
+    bctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    bctx.clearRect(0, 0, sW, sH);
+    for (const b of bubbles) {
+      if (!b.ready) { b.x *= sW; b.y *= sH; b.ready = true; }
+      b.y -= b.v * dt;
+      if (b.y < -b.r * 2) { b.y = sH + b.r * 2; b.x = Math.random() * sW; b.dx = 0; }
+      const wob = Math.sin(t * .9 + b.ph) * (8 + b.r * .3);
+      // Perlen weichen dem Zeiger aus
+      const dx = b.x + b.dx + wob - pxX, dy = b.y - pxY, d = Math.hypot(dx, dy) || 1, reach = b.r + 100;
+      if (d < reach) b.dx += dx / d * (reach - d) * dt * 7;
+      b.dx *= .985;
+      const x = b.x + b.dx + wob;
+      bctx.fillStyle = SOLID;
+      bctx.beginPath();
+      bctx.arc(x, b.y, b.r, 0, Math.PI * 2);
+      bctx.fill();
+      if (b.r > 14) {
+        bctx.strokeStyle = '#fff';
+        bctx.lineWidth = b.r * .22;
+        bctx.beginPath();
+        bctx.arc(x, b.y, b.r * .56, 0, Math.PI * 2);
+        bctx.stroke();
+      }
+    }
+  }
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = hero.clientWidth; H = hero.clientHeight;
+    sW = stage.clientWidth; sH = stage.clientHeight;
+    fW = fin.clientWidth; fH = fin.clientHeight;
+    fit(rings, W, H); fit(sRings, sW, sH); fit(sBub, sW, sH); fit(fRings, fW, fH);
+    hView.resize(); sView.resize();
+    arcMax = -parseFloat(getComputedStyle(fin).marginTop);
+  }
+
+  // Hero: Hypnose über die Zeit, danach nur noch Flasche auf Vollton
+  function drawHero(t) {
+    if (iris >= 1) return;
+    const tr = t - ringShift;
+
+    // Intro: Flasche steigt auf, dann sanftes Schweben
+    const intro = clamp01(t / 1.4);
+    const rise = (1 - easeOutBack(intro)) * H * 0.6;
+    const float = Math.sin(t * 1.3) * 7 * clamp01(t - 1.4);
+    const px = (smx - 0.5) * 14, py = (smy - 0.5) * 8;
+    const rot = (smx - 0.5) * 2.2 + Math.sin(t * 0.9) * 0.4;
+    // Beim Scrollen fährt die Kamera ins Etikett, dort öffnet sich der Weinberg
+    wrap.style.transform = `translate3d(${px}px, ${rise + float + py}px, 0) rotate(${rot}deg) scale(${1 + iris * 1.5})`;
+    wrap.style.opacity = clamp01(intro * 3);
+    heroCopy.style.opacity = 1 - clamp01(iris * 3.5);
+    const lift = (float + 7) / 14; // 0 = unten, 1 = oben
+    shadow.style.transform = `translateX(-50%) translateY(${-float - py - rise}px) scale(${1 - lift * 0.12})`;
+    shadow.style.opacity = (0.95 - lift * 0.25) * clamp01((intro - 0.5) * 2);
+
+    // Ringe strömen aus dem Etikett, drehen am Ende um und verschwinden wieder darin
+    const back = clamp01((tr - T_BACK) / (T_SOLID - T_BACK));
+    if (back > .12) root.classList.add('landed');
+    const rect = wrap.getBoundingClientRect();
+    const hr = hero.getBoundingClientRect();
+    const cx = rect.left - hr.left + rect.width * LABEL_CX;
+    const cy = rect.top - hr.top + rect.height * LABEL_CY;
+    labelX = rect.left + rect.width * LABEL_CX;
+    labelY = rect.top + rect.height * LABEL_CY;
+    if (back < 1) {
+      if (solid) { solid = false; hero.classList.remove('solid'); }
+      const labelPx = rect.width * LABEL_W;
+      const mood = 1 - easeInOut(back);
+      const far = Math.hypot(Math.max(cx, W - cx), Math.max(cy, H - cy)) + 40;
+      const reveal = easeOutCubic(clamp01((tr - T_RING) / (T_FULL - T_RING))) * far * mood;
+      const s = tr * 0.22 - 1.5 * back * back * back;
+      paintRings(rctx, W, H, cx, cy, labelPx, s, reveal, mood);
+      hero.style.setProperty('--fx', mood);
+      hero.style.setProperty('--cx', (cx / W * 100) + '%');
+      hero.style.setProperty('--cy', (cy / H * 100) + '%');
+    } else if (!solid) {
+      solid = true;
+      hero.classList.add('solid');
+    }
+
+    // Glanz: automatischer Sweep alle 5 s, Maus verschiebt den Grundreflex
+    const cyc = ((t + 3) % 5) / 5;
+    const sweep = cyc < 0.35 ? -0.4 + easeOutCubic(cyc / 0.35) * 1.8 : -1;
+    hView.draw(sweep, 0.3 + (smx - 0.5) * 0.35, 0, t);
+  }
+
+  // Herkunft: Kreis wächst aus dem Etikett, bis der Weinberg das Bild füllt
+  function drawHerkunft() {
+    const r = herkunft.getBoundingClientRect();
+    if (!inView(r)) { iris = r.bottom <= 0 ? 1 : 0; return; }
+    const vh = innerHeight;
+    const p = clamp01(-r.top / (r.height - vh));
+    iris = easeInOut(seg(p, 0, .44));
+    const far = Math.hypot(Math.max(labelX, innerWidth - labelX), Math.max(labelY, vh - labelY)) + 40;
+    hStage.style.setProperty('--iris', (iris * far) + 'px');
+    hStage.style.setProperty('--ix', labelX + 'px');
+    hStage.style.setProperty('--iy', labelY + 'px');
+    hStage.style.setProperty('--h', easeOutCubic(seg(p, .4, .62)).toFixed(4));
+    hImg.style.transform = `scale(${1.16 - .16 * easeOutCubic(seg(p, 0, 1))})`;
+  }
+
+  // Fotos wandern langsam in ihrem Rahmen
+  function drawFotos() {
+    const vh = innerHeight;
+    for (const f of framed) {
+      const r = f.getBoundingClientRect();
+      if (inView(r)) f.style.setProperty('--py', (((r.top + r.height / 2) / vh - .5) * -6).toFixed(2) + '%');
+    }
+  }
+
+  function drawSorten(t, dt) {
+    const r = sorten.getBoundingClientRect();
+    if (!inView(r)) return;
+    const vh = innerHeight;
+    const p = clamp01(-r.top / (r.height - vh));
+    const entry = easeOutCubic(clamp01(1 - r.top / vh));
+    const wipe = easeInOut(seg(p, .42, .62));
+
+    const on = p >= .5 ? 'secco' : 'still';
+    if (on !== sorte) {
+      sorte = on;
+      stage.dataset.sorte = on;
+      sorteEls.forEach(el => el.classList.toggle('on', el.dataset.s === on));
+    }
+
+    sWrap.style.setProperty('--by', ((1 - entry) * 46 + Math.sin(t * 1.3) * .4) + '%');
+    sWrap.style.setProperty('--br', ((1 - entry) * -9 + (wipe - .5) * 5 + (smx - .5) * 1.6) + 'deg');
+
+    const rect = sWrap.getBoundingClientRect(), hr = stage.getBoundingClientRect();
+    const cx = rect.left - hr.left + rect.width * LABEL_CX;
+    const cy = rect.top - hr.top + rect.height * LABEL_CY;
+    const labelPx = rect.width * LABEL_W;
+    let far = 0;
+    if (wipe < 1) {
+      // Still: dieselben Ringe, aber fast ohne Bewegung – Scrollen schiebt sie weiter
+      far = paintRings(srctx, sW, sH, cx, cy, labelPx, t * .03 + p * 1.6, 1e5, 0);
+    } else {
+      far = Math.hypot(Math.max(cx, sW - cx), Math.max(cy, sH - cy)) + 40;
+    }
+    sSecco.style.setProperty('--wipe', (wipe * far) + 'px');
+    sSecco.style.setProperty('--wx', cx + 'px');
+    sSecco.style.setProperty('--wy', cy + 'px');
+    if (wipe > 0) drawBubbles(t, dt);
+
+    const cyc = ((t + 1.4) % 5) / 5;
+    const sweep = cyc < 0.35 ? -0.4 + easeOutCubic(cyc / 0.35) * 1.8 : -1;
+    sView.draw(sweep, 0.3 + (smx - 0.5) * 0.35, seg(p, .46, .64), t);
+  }
+
+  function drawFinale(t) {
+    const r = fin.getBoundingClientRect();
+    if (!inView(r)) return;
+    const m = fMark.getBoundingClientRect();
+    const cx = m.left - r.left + m.width / 2 + (smx - .5) * fW * .1;
+    const cy = m.top - r.top + m.height / 2 + (smy - .5) * fH * .08;
+    const labelPx = m.height * 1.1;
+    // Ringe brechen aus der Bildmitte, sobald die Sektion ins Bild fährt
+    const open = easeOutCubic(clamp01((innerHeight - r.top) / (innerHeight * .9)));
+    paintRings(fctx, fW, fH, cx, cy, labelPx, t * 0.22, open * Math.hypot(fW, fH), 0);
+  }
+
+  function frame(now) {
+    if (!t0) { t0 = last = now; }
+    const t = (now - t0) / 1000 + T_OFF;
+    const dt = Math.min((now - last) / 1000, .05) || .016;
+    last = now;
+
+    smx += (mouseX - smx) * 0.06;
+    smy += (mouseY - smy) * 0.06;
+
+    drawHero(t);
+    drawHerkunft();
+    drawFotos();
+    drawSorten(t, dt);
+    drawFinale(t);
+
+    // Sektionsbögen flachen zum oberen Rand hin ab
+    for (const c of curtains) {
+      c.style.setProperty('--arc', clamp01(c.getBoundingClientRect().top / innerHeight) * arcMax + 'px');
+    }
+
+    // Navigation: weg beim Runterscrollen, zurück beim Hochscrollen
+    const dy = scrollY - lastY;
+    if (Math.abs(dy) > 3) {
+      nav.classList.toggle('away', dy > 0 && scrollY > innerHeight * .25);
+      lastY = scrollY;
+    }
+
+    let theme = 'light';
+    for (const s of themed) {
+      const b = s.getBoundingClientRect();
+      if (s === herkunft && iris < .62) continue; // noch liegt der Kreis nicht unter der Navigation
+      if (b.top <= 44 && b.bottom > 44) theme = s.dataset.nav;
+    }
+    nav.dataset.on = theme;
+
+    requestAnimationFrame(frame);
+  }
+
+  // Ruhige Fassung: alles einmal stehend zeichnen
+  function still() {
+    resize();
+    hView.draw(-1, .3, 0, 0);
+    sView.draw(-1, .3, 0, 0);
+    const r = sWrap.getBoundingClientRect(), hr = stage.getBoundingClientRect();
+    paintRings(srctx, sW, sH, r.left - hr.left + r.width * LABEL_CX, r.top - hr.top + r.height * LABEL_CY, r.width * LABEL_W, 0, 1e5, 0);
+    const m = fMark.getBoundingClientRect(), fr = fin.getBoundingClientRect();
+    paintRings(fctx, fW, fH, m.left - fr.left + m.width / 2, m.top - fr.top + m.height / 2, m.height * 1.1, 0, 1e5, 0);
+  }
+
+  // Liste: Füllung wächst als Kreis von der Zeigerposition aus
+  document.querySelectorAll('.grund').forEach(row => {
+    const over = document.createElement('div');
+    over.className = 'over';
+    over.setAttribute('aria-hidden', 'true');
+    over.innerHTML = row.innerHTML;
+    row.append(over);
+    const at = e => {
+      const r = row.getBoundingClientRect();
+      row.style.setProperty('--x', (e.clientX - r.left) + 'px');
+      row.style.setProperty('--y', (e.clientY - r.top) + 'px');
+    };
+    row.addEventListener('pointerenter', e => { at(e); row.classList.add('on'); });
+    row.addEventListener('pointerleave', e => { at(e); row.classList.remove('on'); });
+  });
+  // Ohne Maus übernimmt die Bildschirmmitte
+  if (matchMedia('(hover: none)').matches) {
+    const mid = new IntersectionObserver(es => es.forEach(e => e.target.classList.toggle('on', e.isIntersecting)), { rootMargin: '-46% 0px -46% 0px' });
+    document.querySelectorAll('.grund').forEach(r => mid.observe(r));
+  }
+
+  const rv = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('in'); rv.unobserve(e.target); }
+  }), { threshold: .2 });
+  document.querySelectorAll('.rv, .ph').forEach(el => rv.observe(el));
+
+  // Tastaturfokus auf der gerade ausgeblendeten Sorte: zur passenden Stelle scrollen
+  sorteEls.forEach(el => el.addEventListener('focusin', () => {
+    if (!el.classList.contains('on')) location.hash = el.dataset.s === 'secco' ? 'secco' : 'stillwein';
+  }));
+
+  // Klick auf die Flasche startet die Hypnose noch einmal
+  wrap.addEventListener('click', () => {
+    if (!fx || !solid) return;
+    ringShift = (performance.now() - t0) / 1000 + T_OFF - T_RING;
+  });
+
+  addEventListener('pointermove', e => {
+    mouseX = e.clientX / innerWidth; mouseY = e.clientY / innerHeight;
+    pxX = e.clientX; pxY = e.clientY;
+  });
+  addEventListener('resize', fx ? resize : still);
+
+  const start = () => {
+    if (fx) {
+      resize();
+      root.classList.add('loaded');
+      requestAnimationFrame(frame);
+    } else {
+      still();
+    }
+  };
+  img.onload = img.onerror = () => (document.fonts ? document.fonts.ready : Promise.resolve()).then(start);
+})();
+</script>
+</body>
+</html>

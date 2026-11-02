@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OHNE Animationen</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Barlow Condensed", "Arial Narrow", sans-serif; background: #DCDEDF; color: #231F20; padding: clamp(16px, 4vw, 56px); }
+  h1 { font-weight: 800; font-size: clamp(36px, 5vw, 64px); text-transform: uppercase; line-height: 1; }
+  h1 span { background: #FFF200; padding: 0 .15em; }
+  p.sub { font-weight: 300; font-size: 20px; margin: .4em 0 2em; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+  .card { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.08); display: flex; flex-direction: column; }
+  .frame { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #111; }
+  .frame iframe { position: absolute; top: 0; left: 0; width: 1440px; height: 900px; border: 0; transform-origin: 0 0; pointer-events: none; }
+  .meta { padding: 18px 20px 22px; }
+  .meta h2 { font-weight: 800; font-size: 28px; text-transform: uppercase; }
+  .meta p { font-weight: 300; font-size: 18px; line-height: 1.35; margin: .3em 0 .9em; }
+  .meta a { color: #231F20; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; font-size: 14px; }
+</style>
+</head>
+<body>
+  <h1><span>OHNE</span> – Website-Animationen</h1>
+  <p class="sub">Drei Hero-Varianten für den entalkoholisierten Wein vom Weingut Rosenhof.</p>
+  <div class="grid">
+    <article class="card">
+      <div class="frame"><iframe src="01-hypnose.html" title="Hypnose" loading="lazy"></iframe></div>
+      <div class="meta"><h2>01 · Hypnose</h2><p>Die Ringe des Etiketts wachsen aus der Flasche in den ganzen Hintergrund. Flasche schwebt, Glanzlicht und Neigung folgen der Maus.</p><a href="01-hypnose.html">Vollbild öffnen →</a></div>
+    </article>
+    <article class="card">
+      <div class="frame"><iframe src="02-eiskalt.html" title="Eiskalt" loading="lazy"></iframe></div>
+      <div class="meta"><h2>02 · Eiskalt</h2><p>Die Flasche beschlägt, Kondenstropfen wachsen, fließen zusammen und laufen herab. Mit der Maus lässt sich der Beschlag wegwischen.</p><a href="02-eiskalt.html">Vollbild öffnen →</a></div>
+    </article>
+    <article class="card">
+      <div class="frame"><iframe src="03-verflogen.html" title="Verflogen" loading="lazy"></iframe></div>
+      <div class="meta"><h2>03 · Verflogen</h2><p>„12,5 % vol“ verdampft als Partikelwolke, dann schießt OH|NE aus dem Etikett und die Ringe öffnen sich. Läuft in Schleife.</p><a href="03-verflogen.html">Vollbild öffnen →</a></div>
+    </article>
+  </div>
+<script>
+  const fit = () => document.querySelectorAll('.frame').forEach(f => {
+    f.querySelector('iframe').style.transform = `scale(${f.clientWidth / 1440})`;
+  });
+  addEventListener('resize', fit); fit();
+</script>
+</body>
+</html>

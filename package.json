@@ -1,0 +1,13 @@
+{
+  "name": "einmalohne",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Website einmalohne.de mit Claude-Konnektor (MCP) zum Bearbeiten",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env --experimental-strip-types --disable-warning=ExperimentalWarning server/index.ts"
+  }
+}

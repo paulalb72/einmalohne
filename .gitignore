@@ -1,0 +1,4 @@
+# Kundenunterlagen (Etikett-Entwurf) gehören nicht ins öffentliche Repo
+*.pdf
+.env
+node_modules/

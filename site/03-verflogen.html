@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OHNE – Verflogen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ohne-yellow: #FFF200;
+    --ohne-ink: #231F20;
+    --paper: #DCDEDF;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--paper); }
+  body { font-family: "Barlow Condensed", "Arial Narrow", sans-serif; color: var(--ohne-ink); overflow-x: hidden; }
+
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100svh;
+    overflow: hidden;
+    isolation: isolate;
+    background:
+      radial-gradient(ellipse 70% 55% at 50% 38%, #ECEDEE 0%, rgba(236,237,238,0) 70%),
+      linear-gradient(180deg, #E1E3E4 0%, #D6D8D9 var(--floor, 82%), #C9CBCC var(--floor, 82%), #D9DBDC 100%);
+  }
+  #fx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+  .bottle-wrap {
+    position: absolute; left: 50%; z-index: 2;
+    height: min(62vh, 680px); aspect-ratio: 407 / 1800;
+    bottom: 19vh; transform: translateX(-50%);
+  }
+  #bottle { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #reflection { position: absolute; left: 0; top: 100%; width: 100%; height: 30%; filter: blur(1px); }
+  .contact {
+    position: absolute; left: 50%; bottom: -1.2%; width: 150%; height: 3%; transform: translateX(-50%);
+    background: radial-gradient(ellipse at center, rgba(20,20,20,.55), rgba(20,20,20,0) 70%);
+  }
+
+  .caption {
+    position: absolute; left: 0; right: 0; top: clamp(20px, 5vh, 56px); z-index: 3;
+    text-align: center; padding: 0 16px; pointer-events: none;
+  }
+  .kicker { font-weight: 400; letter-spacing: .22em; font-size: clamp(13px, 1.1vw, 16px); opacity: .65; }
+  .lines { position: relative; height: 1.1em; font-size: clamp(30px, 4.2vw, 64px); font-weight: 300; margin-top: .25em; }
+  .lines span {
+    position: absolute; left: 0; right: 0; opacity: 0; transform: translateY(.3em);
+    transition: opacity .8s ease, transform .8s cubic-bezier(.2,.8,.2,1);
+  }
+  .lines span.on { opacity: 1; transform: none; }
+  .lines b { font-weight: 800; }
+
+  .foot {
+    position: absolute; left: 0; right: 0; bottom: clamp(20px, 5vh, 48px); z-index: 3;
+    display: flex; justify-content: center;
+  }
+  .cta {
+    display: inline-flex; align-items: center; gap: .6em;
+    background: var(--ohne-ink); color: var(--ohne-yellow); text-decoration: none;
+    font-weight: 700; letter-spacing: .12em; text-transform: uppercase; font-size: 15px;
+    padding: 1em 1.6em; border-radius: 999px; transition: background .25s, color .25s;
+  }
+  .cta:hover { background: var(--ohne-yellow); color: var(--ohne-ink); }
+
+  @media (max-width: 820px) {
+    .bottle-wrap { height: min(56vh, 520px); bottom: 17vh; }
+    .kicker { letter-spacing: .14em; }
+  }
+</style>
+</head>
+<body>
+
+<section class="hero" id="hero">
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <div class="caption">
+    <p class="kicker">ohne · entalkoholisierter wein vom weingut rosenhof</p>
+    <p class="lines" aria-live="polite">
+      <span id="capA">Alles, was Wein ausmacht&nbsp;–</span>
+      <span id="capB">–&nbsp;nur <b>ohne</b> Alkohol.</span>
+    </p>
+  </div>
+
+  <div class="bottle-wrap" id="bottleWrap">
+    <div class="contact"></div>
+    <canvas id="reflection" aria-hidden="true"></canvas>
+    <canvas id="bottle" role="img" aria-label="Flasche OHNE – entalkoholisierter Wein"></canvas>
+  </div>
+
+  <div class="foot"><a class="cta" href="#">Jetzt probieren</a></div>
+</section>
+
+<script>
+(() => {
+  // Beispielhafter Alkoholgehalt eines klassischen Weins, der "verdampft"
+  const ABV_LEFT = '12,5', ABV_RIGHT = '% vol';
+  // Logo-Glyphen aus dem Etikett (Koordinaten im 198,43 × 255,12 Etikett)
+  const PATH_OH = 'M58.13 103.4C58.13 106.89 58.71 109.87 59.87 112.35C61.03 114.83 62.58 116.88 64.52 118.5C66.38 120.21 68.48 121.49 70.85 122.34C73.21 123.19 75.59 123.61 77.99 123.61C80.39 123.61 82.77 123.19 85.14 122.34C87.5 121.49 89.65 120.21 91.58 118.5C93.44 116.88 94.95 114.83 96.11 112.35C97.27 109.87 97.86 106.89 97.86 103.4L97.86 59.73C97.86 56.4 97.27 53.45 96.11 50.9C94.95 48.34 93.44 46.21 91.58 44.51C89.65 42.88 87.5 41.64 85.14 40.79C82.77 39.94 80.39 39.51 77.99 39.51C75.59 39.51 73.21 39.94 70.85 40.79C68.48 41.64 66.38 42.88 64.52 44.51C62.58 46.21 61.03 48.34 59.87 50.9C58.71 53.45 58.13 56.4 58.13 59.73L58.13 103.4M69.98 59.73C69.98 56.86 70.77 54.75 72.36 53.39C73.94 52.04 75.82 51.36 77.99 51.36C80.16 51.36 82.04 52.04 83.63 53.39C85.21 54.75 86.01 56.86 86.01 59.73L86.01 103.4C86.01 106.27 85.21 108.38 83.63 109.73C82.04 111.09 80.16 111.77 77.99 111.77C75.82 111.77 73.94 111.09 72.36 109.73C70.77 108.38 69.98 106.27 69.98 103.4L69.98 59.73M113.19 122.92L113.19 86.09L127.82 86.09L127.82 122.92L139.67 122.92L139.67 40.21L127.82 40.21L127.82 75.64L113.19 75.64L113.19 40.21L101.34 40.21L101.34 122.92L113.19 122.92';
+  const PATH_NE = 'M72.42 209.96L72.42 160.24L72.65 160.24L90.77 209.96L101.92 209.96L101.92 127.25L90.07 127.25L90.07 177.08L89.84 177.08L71.95 127.25L60.57 127.25L60.57 209.96L72.42 209.96M140.95 209.96L140.95 198.11L117.49 198.11L117.49 173.83L137.93 173.83L137.93 162.68L117.49 162.68L117.49 138.4L140.95 138.4L140.95 127.25L105.64 127.25L105.64 209.96L140.95 209.96';
+  const OH_BOX = { x: 58.13, y: 39.51, w: 81.54, h: 84.1 };
+  const NE_BOX = { x: 60.57, y: 127.25, w: 80.38, h: 82.71 };
+  const LABEL_CX = 0.503, LABEL_CY = 0.792, LABEL_W = 0.856, LABEL_TOP = 0.654, LABEL_BOTTOM = 0.93;
+
+  // Zeitplan einer Schleife (Sekunden)
+  const T = { gather: 0, hold: 1.8, evap: 3.4, form: 5.6, crisp: 7.2, dissolve: 11.6, loop: 13.0 };
+
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // ?t=3 springt für Vorschau-Screenshots direkt zu Sekunde 3
+  const T_OFF = parseFloat(new URLSearchParams(location.search).get('t')) || 0;
+
+  const hero = document.getElementById('hero');
+  const fx = document.getElementById('fx');
+  const ctx = fx.getContext('2d');
+  const wrap = document.getElementById('bottleWrap');
+  const bCanvas = document.getElementById('bottle');
+  const bctx = bCanvas.getContext('2d');
+  const refl = document.getElementById('reflection');
+  const rctx = refl.getContext('2d');
+  const sheen = document.createElement('canvas');
+  const sctx = sheen.getContext('2d');
+  const capA = document.getElementById('capA'), capB = document.getElementById('capB');
+  const pathOH = new Path2D(PATH_OH), pathNE = new Path2D(PATH_NE);
+
+  const img = new Image();
+  img.src = 'assets/bottle.webp';
+
+  let dpr = 1, W = 0, H = 0;
+  let geo = null;             // Layout: Flasche, Etikett, Wortpositionen
+  let ptsABV = [], ptsOHNE = [];
+  let P = [];                 // Partikel-Pool
+  let phase = '', t0 = 0, last = 0, visible = true;
+
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const easeInOut = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+  const easeOut = x => 1 - Math.pow(1 - x, 3);
+  const easeOutBack = x => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+
+  function layout() {
+    const hr = hero.getBoundingClientRect(), br = wrap.getBoundingClientRect();
+    const b = { x: br.left - hr.left, y: br.top - hr.top, w: br.width, h: br.height };
+    const gap = Math.max(14, b.w * 0.28);
+    // Wortgröße: so groß wie möglich neben der Flasche, aber nicht höher als 38 % der Flasche
+    const sideW = (W - b.w) / 2 - gap - 16;
+    const wordH = Math.min(b.h * 0.4, sideW * (84 / 81.5));
+    const cy = b.y + b.h * 0.6;
+    return {
+      b, gap, wordH, cy,
+      label: { cx: b.x + b.w * LABEL_CX, cy: b.y + b.h * LABEL_CY, w: b.w * LABEL_W, top: b.y + b.h * LABEL_TOP, bottom: b.y + b.h * LABEL_BOTTOM },
+      leftEdge: b.x - gap, rightEdge: b.x + b.w + gap,
+      floor: b.y + b.h,
+    };
+  }
+
+  // Punkte aus Text bzw. Pfad abtasten (eigene Canvas – enthält kein Foto, daher lesbar)
+  function sample(drawFn, step) {
+    const c = document.createElement('canvas');
+    c.width = Math.ceil(W); c.height = Math.ceil(H);
+    const x = c.getContext('2d');
+    x.fillStyle = '#000';
+    drawFn(x);
+    const d = x.getImageData(0, 0, c.width, c.height).data;
+    const out = [];
+    for (let y = 0; y < c.height; y += step)
+      for (let xx = 0; xx < c.width; xx += step)
+        if (d[(y * c.width + xx) * 4 + 3] > 128) out.push([xx + rand(-.6, .6) * step * .3, y + rand(-.6, .6) * step * .3]);
+    return out;
+  }
+
+  function drawABV(x) {
+    const g = geo, fs = g.wordH * 1.12;
+    x.font = `800 ${fs}px "Barlow Condensed", "Arial Narrow", sans-serif`;
+    x.textBaseline = 'middle';
+    // Größe begrenzen, damit beide Hälften neben die Flasche passen
+    const maxW = g.leftEdge - 16;
+    const s = Math.min(1, maxW / x.measureText(ABV_LEFT).width, (W - g.rightEdge - 16) / x.measureText(ABV_RIGHT).width);
+    x.font = `800 ${fs * s}px "Barlow Condensed", "Arial Narrow", sans-serif`;
+    x.textAlign = 'right'; x.fillText(ABV_LEFT, g.leftEdge, g.cy);
+    x.textAlign = 'left'; x.fillText(ABV_RIGHT, g.rightEdge, g.cy);
+  }
+
+  function drawOHNE(x) {
+    const g = geo, k = g.wordH / OH_BOX.h;
+    x.save();
+    x.translate(g.leftEdge - OH_BOX.w * k, g.cy - g.wordH / 2);
+    x.scale(k, k); x.translate(-OH_BOX.x, -OH_BOX.y);
+    x.fill(pathOH);
+    x.restore();
+    x.save();
+    const k2 = g.wordH / NE_BOX.h;
+    x.translate(g.rightEdge, g.cy - g.wordH / 2);
+    x.scale(k2, k2); x.translate(-NE_BOX.x, -NE_BOX.y);
+    x.fill(pathNE);
+    x.restore();
+  }
+
+  function rebuild() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = hero.clientWidth; H = hero.clientHeight;
+    fx.width = W * dpr; fx.height = H * dpr;
+    const bw = wrap.clientWidth, bh = wrap.clientHeight;
+    bCanvas.width = sheen.width = Math.round(bw * dpr);
+    bCanvas.height = sheen.height = Math.round(bh * dpr);
+    refl.width = bCanvas.width; refl.height = Math.round(bCanvas.height * 0.3);
+    geo = layout();
+    hero.style.setProperty('--floor', (geo.floor / H * 100) + '%');
+    const step = Math.max(3, Math.round(geo.wordH / 75));
+    ptsABV = sample(drawABV, step);
+    ptsOHNE = sample(drawOHNE, step);
+    const n = Math.max(ptsABV.length, ptsOHNE.length);
+    while (P.length < n) P.push({ x: rand(0, W), y: rand(0, H), a: 0, vx: 0, vy: 0, col: 0, seed: Math.random() * 100, size: 1 });
+    P.length = n;
+    const dot = Math.max(1.5, step * 0.5);
+    P.forEach((p, i) => {
+      p.abv = ptsABV[i % ptsABV.length]; p.inABV = i < ptsABV.length;
+      p.ohne = ptsOHNE[i % ptsOHNE.length]; p.inOHNE = i < ptsOHNE.length;
+      p.size = p.baseSize = dot * rand(.85, 1.15);
+    });
+    phase = ''; // Phase neu initialisieren
+  }
+
+  function enter(name, t) {
+    phase = name;
+    if (name === 'gather') {
+      capA.classList.remove('on'); capB.classList.remove('on');
+      P.forEach(p => {
+        p.sx = p.x; p.sy = p.y;
+        if (p.a < 0.01) { // aus dem Nichts von unten herein schweben
+          p.sx = p.abv[0] + rand(-W * .15, W * .15); p.sy = p.abv[1] + rand(H * .2, H * .6);
+        }
+        p.delay = rand(0, .6); p.curve = rand(-80, 80); p.col = 0; p.size = p.baseSize;
+      });
+      setTimeout(() => capA.classList.add('on'), 400);
+    }
+    if (name === 'evap') {
+      // oben verdampft zuerst
+      const top = geo.cy - geo.wordH / 2;
+      P.forEach(p => {
+        p.x = p.abv[0]; p.y = p.abv[1];
+        p.delay = clamp01((p.y - top) / geo.wordH) * 0.8 + rand(0, .6);
+        p.vx = 0; p.vy = rand(-10, -30); p.life = 0; p.a = p.inABV ? 1 : 0; p.col = 0;
+      });
+    }
+    if (name === 'form') {
+      capA.classList.remove('on');
+      const L = geo.label;
+      P.forEach(p => {
+        // aus dem Etikett heraus
+        p.sx = L.cx + rand(-.5, .5) * L.w * 0.8; p.sy = rand(L.top, L.bottom);
+        p.delay = rand(0, .55); p.curve = rand(-120, 120); p.col = 0; p.size = p.baseSize;
+      });
+      setTimeout(() => capB.classList.add('on'), 1150);
+    }
+    if (name === 'dissolve') {
+      P.forEach(p => {
+        p.x = p.ohne[0]; p.y = p.ohne[1];
+        const ang = Math.atan2(p.y - geo.label.cy, p.x - geo.label.cx);
+        p.vx = Math.cos(ang) * rand(20, 90); p.vy = Math.sin(ang) * rand(10, 50) - rand(20, 70);
+        p.delay = rand(0, .4);
+      });
+    }
+  }
+
+  function drawDots(alphaMul) {
+    // Tinte -> Dampf: Farbe von #231F20 zu hellem Grau
+    for (const p of P) {
+      const a = p.a * alphaMul;
+      if (a < 0.01) continue;
+      const c = Math.round(35 + p.col * 175);
+      ctx.fillStyle = `rgba(${c},${c - 4 + p.col * 6},${c - 3 + p.col * 6},${a.toFixed(3)})`;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, 6.2832); ctx.fill();
+    }
+  }
+
+  function drawLogoDisc(k, t) {
+    if (k <= 0.001) return;
+    const L = geo.label;
+    const R = Math.hypot(W, H) * 0.42 * k;
+    ctx.save();
+    ctx.beginPath(); ctx.arc(L.cx, geo.cy, R, 0, Math.PI * 2); ctx.clip();
+    ctx.fillStyle = '#FFF200';
+    ctx.fillRect(0, 0, W, H);
+    // weiße Ringe wie auf dem Etikett, langsam pulsierend
+    const unit = geo.wordH / 84 * 1.6;
+    const rings = [[17.83, 18], [61.58, 20], [109.76, 22], [160, 24], [213, 26], [268, 28]];
+    ctx.strokeStyle = '#fff';
+    const pulse = 1 + Math.sin(t * 1.4) * 0.015;
+    for (const [r, sw] of rings) {
+      ctx.lineWidth = sw * unit;
+      ctx.beginPath(); ctx.arc(L.cx, geo.cy, r * unit * pulse, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawCrisp(alpha) {
+    if (alpha <= 0.001) return;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = '#231F20';
+    drawOHNE(ctx);
+    ctx.restore();
+  }
+
+  function update(t, dt) {
+    const lt = reduce ? T.crisp + 1 : t % T.loop;
+    const name = lt < T.hold ? 'gather' : lt < T.evap ? 'hold' : lt < T.form ? 'evap' : lt < T.crisp ? 'form' : lt < T.dissolve ? 'crisp' : 'dissolve';
+    if (name !== phase) {
+      if (name === 'hold' && phase !== 'gather') enter('gather', t);
+      if (name === 'crisp' && phase !== 'form') enter('form', t);
+      if (name === 'evap' && phase !== 'hold' && phase !== 'gather') enter('gather', t);
+      enter(name, t);
+    }
+
+    let disc = 0, crisp = 0, dotsMul = 1;
+    if (phase === 'gather' || phase === 'hold') {
+      const pt = lt - T.gather;
+      for (const p of P) {
+        if (!p.inABV) { p.a = Math.max(0, p.a - dt * 2); continue; }
+        const k = easeInOut(clamp01((pt - p.delay) / 1.1));
+        const bend = Math.sin(k * Math.PI) * p.curve;
+        p.x = p.sx + (p.abv[0] - p.sx) * k + bend;
+        p.y = p.sy + (p.abv[1] - p.sy) * k;
+        if (k >= 1) { p.x += Math.sin(t * 2 + p.seed) * 0.35; p.y += Math.cos(t * 1.7 + p.seed) * 0.35; }
+        p.a = Math.min(1, k * 1.4);
+        p.col = 0;
+      }
+    } else if (phase === 'evap') {
+      const pt = lt - T.evap;
+      for (const p of P) {
+        if (!p.inABV) continue;
+        if (pt < p.delay) continue;
+        p.life += dt;
+        // Aufsteigen mit Verwirbelung
+        p.vy -= rand(70, 150) * dt;
+        p.vx += (Math.sin(p.y * 0.015 + t * 2.2 + p.seed) * 110 + Math.cos(p.x * 0.01 + p.seed) * 40) * dt;
+        p.vx *= 0.98;
+        p.x += p.vx * dt; p.y += p.vy * dt;
+        p.col = Math.min(1, p.life * 1.2);
+        p.a = Math.max(0, 1 - p.life / 1.9);
+        p.size *= (1 + dt * 0.5);
+      }
+    } else if (phase === 'form' || phase === 'crisp') {
+      const pt = lt - T.form;
+      for (const p of P) {
+        if (!p.inOHNE) { p.a = 0; continue; }
+        const k = easeOut(clamp01((pt - p.delay) / 1.15));
+        const bend = Math.sin(k * Math.PI) * p.curve;
+        p.x = p.sx + (p.ohne[0] - p.sx) * k + bend * 0.5;
+        p.y = p.sy + (p.ohne[1] - p.sy) * k - Math.sin(k * Math.PI) * 60;
+        p.a = k > 0 ? 1 : 0;
+        p.col = 0;
+      }
+      disc = easeOutBack(clamp01((pt - 1.2) / 1.1));
+      crisp = clamp01((pt - 1.5) / 0.5);
+      dotsMul = 1 - crisp;
+    } else if (phase === 'dissolve') {
+      const pt = lt - T.dissolve;
+      for (const p of P) {
+        if (!p.inOHNE || pt < p.delay) continue;
+        p.vy -= 30 * dt;
+        p.x += p.vx * dt; p.y += p.vy * dt;
+        p.a = Math.max(0, 1 - (pt - p.delay) / 1.0);
+        p.col = Math.min(1, (pt - p.delay) * 1.4);
+      }
+      disc = 1 - easeInOut(clamp01(pt / 0.9));
+      crisp = 1 - clamp01(pt / 0.25);
+      dotsMul = 1 - crisp;
+    }
+    return { disc, crisp, dotsMul };
+  }
+
+  function drawBottle(sweepX) {
+    const w = bCanvas.width, h = bCanvas.height;
+    bctx.clearRect(0, 0, w, h);
+    bctx.drawImage(img, 0, 0, w, h);
+    sctx.globalCompositeOperation = 'source-over';
+    sctx.clearRect(0, 0, w, h);
+    if (sweepX > -0.5) {
+      const g = sctx.createLinearGradient((sweepX - .2) * w, 0, (sweepX + .2) * w, 0);
+      g.addColorStop(0, 'rgba(255,255,250,0)');
+      g.addColorStop(.5, 'rgba(255,255,250,.4)');
+      g.addColorStop(1, 'rgba(255,255,250,0)');
+      sctx.fillStyle = g; sctx.fillRect(0, 0, w, h);
+      sctx.globalCompositeOperation = 'destination-in';
+      sctx.drawImage(img, 0, 0, w, h);
+      bctx.globalCompositeOperation = 'screen';
+      bctx.drawImage(sheen, 0, 0);
+      bctx.globalCompositeOperation = 'source-over';
+    }
+    rctx.clearRect(0, 0, refl.width, refl.height);
+    rctx.save();
+    rctx.scale(1, -1);
+    rctx.globalAlpha = 0.28;
+    rctx.drawImage(bCanvas, 0, h - refl.height, w, refl.height, 0, -refl.height, w, refl.height);
+    rctx.restore();
+    rctx.globalCompositeOperation = 'destination-out';
+    const fg = rctx.createLinearGradient(0, 0, 0, refl.height);
+    fg.addColorStop(0, 'rgba(0,0,0,0)'); fg.addColorStop(.7, 'rgba(0,0,0,1)');
+    rctx.fillStyle = fg; rctx.fillRect(0, 0, refl.width, refl.height);
+    rctx.globalCompositeOperation = 'source-over';
+  }
+
+  function frame(now) {
+    if (!t0) { t0 = now; last = now; }
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    const t = (now - t0) / 1000 + T_OFF;
+
+    const st = update(t, dt);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    drawLogoDisc(st.disc, t);
+    drawDots(st.dotsMul);
+    drawCrisp(st.crisp);
+
+    // Glanz läuft über die Flasche, sobald OHNE erscheint
+    const lt = t % T.loop;
+    const sw = lt > T.crisp && lt < T.crisp + 1.2 ? -0.4 + easeOut((lt - T.crisp) / 1.2) * 1.8 : -1;
+    drawBottle(reduce ? -1 : sw);
+
+    if (visible) requestAnimationFrame(frame);
+  }
+
+  let rz;
+  addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(rebuild, 120); });
+  new IntersectionObserver(([en]) => {
+    const was = visible; visible = en.isIntersecting;
+    if (visible && !was) { last = performance.now(); requestAnimationFrame(frame); }
+  }).observe(hero);
+
+  const fontReady = (document.fonts ? Promise.race([document.fonts.load('800 100px "Barlow Condensed"'), new Promise(r => setTimeout(r, 1500))]) : Promise.resolve());
+  const imgReady = new Promise(r => { if (img.complete && img.naturalWidth) r(); else img.onload = r; });
+  Promise.all([fontReady, imgReady]).then(() => {
+    rebuild();
+    requestAnimationFrame(frame);
+  });
+})();
+</script>
+</body>
+</html>
