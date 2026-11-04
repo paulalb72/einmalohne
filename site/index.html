@@ -329,7 +329,7 @@
     .s-bottle { left: auto; right: max(4vw, 16px); bottom: 76px; transform: translate(0, var(--by, 0%)) rotate(var(--br, 0deg)); }
     .s-head h2 { letter-spacing: .14em; font-size: 13px; }
     .s-head { padding-top: 84px; }
-    .fx .sorte { padding: 128px var(--gutter) 78px; }
+    .fx .sorte { padding: 128px calc(var(--bw) + var(--gutter) + 8px) 78px var(--gutter); }
     .sorte { grid-template-columns: minmax(0, 1fr); align-content: space-between; padding-right: calc(var(--bw) + var(--gutter) + 8px); }
     .s-name { grid-column: 1; justify-self: start; text-align: left; font-size: min(23vw, 15svh); }
     .s-copy { grid-column: 1; }
