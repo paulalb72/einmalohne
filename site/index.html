@@ -133,10 +133,11 @@
   /* Auftritt: Claim sofort, der Rest landet erst mit der Farbe */
   .fx .hero .cta { opacity: 0; transform: translateY(14px); }
   .fx .hero .badge { opacity: 0; transform: scale(.4) rotate(-40deg); }
+  /* Claim + Bezeichnung erscheinen gemeinsam, im selben Moment */
   .fx h1 span i { transform: translateY(105%); }
-  .fx.loaded h1 span i { transition: transform 1s var(--spring); transform: none; }
-  .fx.loaded h1 span:nth-child(1) i { transition-delay: 1.05s; }
-  .fx.loaded h1 span:nth-child(2) i { transition-delay: 1.3s; }
+  .fx .hero .bez { opacity: 0; transform: translateY(14px); }
+  .fx.loaded h1 span i { transition: transform 1s var(--spring) 1.05s; transform: none; }
+  .fx.loaded .hero .bez { transition: opacity .6s ease 1.05s, transform 1s var(--spring) 1.05s; opacity: 1; transform: none; }
   .fx.landed .hero .cta { transition: opacity .9s ease, transform .9s var(--spring); opacity: 1; transform: none; }
   .fx.landed .hero .badge { transition: opacity .3s .5s, transform .9s cubic-bezier(.3,1.6,.5,1) .5s; opacity: 1; transform: none; }
 
