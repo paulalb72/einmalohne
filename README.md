@@ -15,9 +15,9 @@ Werkzeuge: `dateien_liste`, `datei_lesen`, `suchen`, `datei_ersetzen`, `datei_sc
 
 So funktioniert es:
 
-- Der Server klont dieses Repo beim Start und liefert die Seite aus der Arbeitskopie aus.
+- Der Server klont dieses Repo beim ersten Start auf das Volume und liefert die Seite aus dieser Arbeitskopie aus.
 - Jede Änderung über den Konnektor ist sofort live und wird als Commit von „Claude-Konnektor“ nach GitHub gepusht. Zurücknehmen = `git revert` des jeweiligen Commits.
-- Jede Minute holt der Server neue Commits von GitHub. Lokal gepushte Änderungen an `site/` sind also ohne Redeploy nach spätestens einer Minute live. Änderungen an `server/` brauchen einen Redeploy.
+- Alle fünf Minuten holt der Server neue Commits von GitHub. Lokal gepushte Änderungen an `site/` sind also ohne Redeploy nach spätestens fünf Minuten live. Änderungen an `server/` brauchen einen Redeploy.
 - Der Konnektor kommt nur an `site/` heran, nicht an den Server-Code.
 
 **Lokal weiterarbeiten:** vorher `git pull`, weil der Konnektor eigene Commits pusht.
@@ -33,11 +33,12 @@ So funktioniert es:
 | `CONNECTOR_TOKEN` | geheimer Teil der Konnektor-Adresse (lang und zufällig, z. B. `openssl rand -base64 32 \| tr '+/' '-_' \| tr -d =`) |
 | `PUBLIC_URL` | öffentliche Adresse, Standard `https://einmalohne.de` |
 | `GIT_BRANCH` | Standard `main` |
+| `WORK_DIR` | Arbeitskopie, im Image `/data/einmalohne` |
 
 Ohne `GIT_REPO` läuft die Seite aus dem Docker-Image und der Konnektor kann nur lesen.
 
 ## Deployment (Coolify)
 
-Public Repository → Build Pack **Dockerfile**, Port **3000**, Domain `https://einmalohne.de` (plus `www`). Die Umgebungsvariablen oben setzen. Ein Volume ist nicht nötig, weil GitHub den Stand hält.
+Public Repository → Build Pack **Dockerfile**, Port **3000**, Domain `https://einmalohne.de` (plus `www`). Die Umgebungsvariablen oben setzen. Persistentes Volume auf `/data`: Darauf liegt die Arbeitskopie, damit Änderungen, die noch nicht nach GitHub gepusht werden konnten, einen Neustart überleben.
 
 Lokal: `.env` aus `.env.example` anlegen, dann `npm start` (Node ≥ 22.13).

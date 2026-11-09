@@ -1,8 +1,8 @@
 // Arbeitskopie des Website-Repos. Die Seite wird direkt aus ihr ausgeliefert:
 // Änderungen über den Konnektor sind sofort live und landen als Commit auf GitHub.
-// Umgekehrt holt ein Abgleich jede Minute neue Commits von GitHub (z. B. lokal gepushte).
+// Umgekehrt holt ein Abgleich alle fünf Minuten neue Commits von GitHub (z. B. lokal gepushte).
 import { execFile } from 'node:child_process';
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
@@ -14,7 +14,9 @@ const BRANCH = process.env.GIT_BRANCH || 'main';
 const WORK_DIR = path.resolve(process.env.WORK_DIR || path.join(tmpdir(), 'einmalohne'));
 const SITE = 'site';
 const BAKED_SITE = path.join(import.meta.dirname, '..', SITE);
-const SYNC_MS = 60_000;
+const SYNC_MS = 5 * 60_000;
+// Hängende Netzwerkzugriffe abbrechen, statt die Warteschlange zu blockieren
+const GIT_TIMEOUT_MS = 90_000;
 const AUTHOR = 'Claude-Konnektor';
 const EMAIL = 'konnektor@einmalohne.de';
 
@@ -54,7 +56,13 @@ function gitEnv(): NodeJS.ProcessEnv {
   const knownHosts = path.join(dir, 'known_hosts');
   writeFileSync(keyFile, `${Buffer.from(key, 'base64').toString('utf8').trimEnd()}\n`, { mode: 0o600 });
   writeFileSync(knownHosts, `${GITHUB_HOST_KEY}\n`);
-  env.GIT_SSH_COMMAND = `ssh -i ${keyFile} -o IdentitiesOnly=yes -o UserKnownHostsFile=${knownHosts} -o StrictHostKeyChecking=yes`;
+  // GitHub über ssh.github.com:443 statt Port 22 – Port 22 lief vom Server aus wiederholt in Timeouts.
+  // Gleicher Hostschlüssel, daher HostKeyAlias.
+  env.GIT_SSH_COMMAND = [
+    `ssh -i ${keyFile} -o IdentitiesOnly=yes -o UserKnownHostsFile=${knownHosts} -o StrictHostKeyChecking=yes`,
+    '-o Hostname=ssh.github.com -o Port=443 -o HostKeyAlias=github.com',
+    '-o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=3',
+  ].join(' ');
   return env;
 }
 
@@ -64,7 +72,15 @@ const errorText = (err: unknown) => (err instanceof Error ? err.message : String
 
 async function git(args: string[], cwd = WORK_DIR) {
   try {
-    const { stdout } = await exec('git', ['-c', 'core.quotePath=false', ...args], { cwd, env: ENV, maxBuffer: 32 * 1024 * 1024 });
+    // Keine abgekoppelten Hintergrundprozesse (Auto-GC/Maintenance), die als Waisen im Container zurückbleiben
+    const config = ['-c', 'core.quotePath=false', '-c', 'gc.autoDetach=false', '-c', 'maintenance.autoDetach=false'];
+    const { stdout } = await exec('git', [...config, ...args], {
+      cwd,
+      env: ENV,
+      maxBuffer: 32 * 1024 * 1024,
+      timeout: GIT_TIMEOUT_MS,
+      killSignal: 'SIGKILL',
+    });
     return stdout;
   } catch (err) {
     const { stderr } = err as { stderr?: string };
@@ -85,6 +101,30 @@ async function clone() {
   mkdirSync(path.dirname(WORK_DIR), { recursive: true });
   await git(['clone', '--quiet', '--branch', BRANCH, REPO, WORK_DIR], path.dirname(WORK_DIR));
   ready = true;
+}
+
+/**
+ * Vorhandene Arbeitskopie (auf dem Volume) weiterverwenden, damit noch nicht gepushte Änderungen
+ * einen Neustart überleben. Nur wenn es keine brauchbare gibt, wird neu geklont.
+ */
+async function prepare() {
+  if (existsSync(path.join(WORK_DIR, '.git'))) {
+    try {
+      // Reste eines abgebrochenen Vorgangs aufräumen (Container mitten in einer Änderung beendet)
+      rmSync(path.join(WORK_DIR, '.git', 'index.lock'), { force: true });
+      await git(['rebase', '--abort']).catch(() => {});
+      await git(['revert', '--abort']).catch(() => {});
+      await git(['remote', 'set-url', 'origin', REPO]);
+      await git(['rev-parse', '--verify', 'HEAD']);
+      await discard();
+      ready = true;
+      return 'weiterverwendet';
+    } catch (err) {
+      console.warn('Vorhandene Arbeitskopie unbrauchbar, klone neu:', errorText(err));
+    }
+  }
+  await clone();
+  return 'geklont';
 }
 
 async function pull() {
@@ -135,23 +175,46 @@ export async function start() {
     console.warn('GIT_REPO ist nicht gesetzt – die Website läuft aus dem Image, der Konnektor kann nichts speichern.');
     return;
   }
+  let how = '';
   for (;;) {
     try {
-      await exclusive(clone);
+      how = await exclusive(prepare);
       break;
     } catch (err) {
       console.error(`Klonen von ${REPO} fehlgeschlagen, neuer Versuch in 30 s:`, errorText(err));
       await new Promise((resolve) => setTimeout(resolve, 30_000));
     }
   }
-  console.log(`Arbeitskopie bereit: ${REPO} (${BRANCH})`);
+  console.log(`Arbeitskopie ${how}: ${WORK_DIR} (${BRANCH})`);
+
+  // Fehler nur beim Wechsel melden, nicht bei jedem Versuch – sonst läuft das Log voll.
+  let lastError = '';
+  let syncing = false;
+  const runSync = () => {
+    if (syncing) return; // ein hängender Abgleich soll sich nicht in der Warteschlange stapeln
+    syncing = true;
+    exclusive(sync)
+      .then(() => {
+        if (lastError) console.log('Abgleich mit GitHub wieder ok');
+        lastError = '';
+      })
+      .catch((err) => {
+        const text = errorText(err);
+        if (text !== lastError) console.error('Abgleich mit GitHub fehlgeschlagen:', text);
+        lastError = text;
+      })
+      .finally(() => {
+        syncing = false;
+      });
+  };
+  // Sofort abgleichen: holt neue Commits und pusht, was vor einem Neustart liegen geblieben ist.
+  runSync();
+  setInterval(runSync, SYNC_MS);
+
   // Früh prüfen, ob der Deploy-Key schreiben darf – sonst fällt es erst bei der ersten Änderung auf.
   exclusive(() => git(['push', '--dry-run', '--quiet', 'origin', `HEAD:${BRANCH}`]))
     .then(() => console.log('Schreibzugriff auf GitHub: ok'))
     .catch((err) => console.warn('WARNUNG: kein Schreibzugriff auf GitHub –', errorText(err)));
-  setInterval(() => {
-    exclusive(sync).catch((err) => console.error('Abgleich mit GitHub fehlgeschlagen:', errorText(err)));
-  }, SYNC_MS);
 }
 
 export interface Saved {
